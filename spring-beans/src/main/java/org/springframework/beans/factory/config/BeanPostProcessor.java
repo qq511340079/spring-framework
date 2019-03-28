@@ -53,6 +53,7 @@ public interface BeanPostProcessor {
 	 * @throws org.springframework.beans.BeansException in case of errors
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet
 	 */
+	// 实例化、依赖注入完毕，在调用显示的初始化方法(init-method)之前完成一些定制的初始化任务
 	Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException;
 
 	/**
@@ -75,6 +76,7 @@ public interface BeanPostProcessor {
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet
 	 * @see org.springframework.beans.factory.FactoryBean
 	 */
+	//实例化、依赖注入、初始化(init-method)完毕时执行
 	Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException;
 
 }

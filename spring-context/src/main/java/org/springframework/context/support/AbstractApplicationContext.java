@@ -503,6 +503,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		return new StandardEnvironment();
 	}
 
+	/**
+	 * spring容器启动核心方法
+	 * 模板方法设计模式
+	 * */
 	@Override
 	public void refresh() throws BeansException, IllegalStateException {
 		//加锁，确保同一时刻只有一个线程对容器进行启动或者关闭
@@ -510,14 +514,14 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			// Prepare this context for refreshing.
 			prepareRefresh();
 
-			// Tell the subclass to refresh the internal bean factory.
+			// 获取刷新后的BeanFactory(容器)，BeanFactory才是真正管理bean的容器啊
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
 			prepareBeanFactory(beanFactory);
 
 			try {
-				// Allows post-processing of the bean factory in context subclasses.
+				// 允许子类实现该方法对BeanFactory进行后处理
 				postProcessBeanFactory(beanFactory);
 
 				// Invoke factory processors registered as beans in the context.
@@ -610,6 +614,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see #getBeanFactory()
 	 */
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
+		//刷新BeanFactory(容器)，加载BeanDefinition
 		refreshBeanFactory();
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
 		if (logger.isDebugEnabled()) {

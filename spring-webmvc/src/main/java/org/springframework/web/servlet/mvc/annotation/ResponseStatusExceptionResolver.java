@@ -34,6 +34,8 @@ import org.springframework.web.servlet.handler.AbstractHandlerExceptionResolver;
  *
  * <p>This exception resolver is enabled by default in the {@link org.springframework.web.servlet.DispatcherServlet}.
  *
+ * 当程序发生异常时，ResponseStatusExceptionResolver异常解释器用来解析@ResponseStatus标注的异常类，并把异常的状态码返回给客户端
+ *
  * @author Arjen Poutsma
  * @author Rossen Stoyanchev
  * @since 3.0

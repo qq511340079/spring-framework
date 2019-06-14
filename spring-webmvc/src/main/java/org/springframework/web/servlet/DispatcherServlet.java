@@ -839,6 +839,8 @@ public class DispatcherServlet extends FrameworkServlet {
 		// Keep a snapshot of the request attributes in case of an include,
 		// to be able to restore the original attributes after the include.
 		Map<String, Object> attributesSnapshot = null;
+		//类似<jsp:include/>标签进行页面嵌套，RequestDispatcher.include方法提供了类似的功能。被包含页面可以通过request中的属性获取包含它的页面的上下文信息，比如javax.servlet.include.request_uri属性
+		//判断是否是被包含页面
 		if (WebUtils.isIncludeRequest(request)) {
 			attributesSnapshot = new HashMap<String, Object>();
 			Enumeration<?> attrNames = request.getAttributeNames();
@@ -851,11 +853,12 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		// Make framework objects available to handlers and view objects.
+		//将一些框架相关的对象放入request中，方便使用
 		request.setAttribute(WEB_APPLICATION_CONTEXT_ATTRIBUTE, getWebApplicationContext());
 		request.setAttribute(LOCALE_RESOLVER_ATTRIBUTE, this.localeResolver);
 		request.setAttribute(THEME_RESOLVER_ATTRIBUTE, this.themeResolver);
 		request.setAttribute(THEME_SOURCE_ATTRIBUTE, getThemeSource());
-
+		//获取Session中的FlashMap，当前请求可以获取上一个请求中放入FlashMap中的属性，比如在重定向后使用并立即删除
 		FlashMap inputFlashMap = this.flashMapManager.retrieveAndUpdate(request, response);
 		if (inputFlashMap != null) {
 			request.setAttribute(INPUT_FLASH_MAP_ATTRIBUTE, Collections.unmodifiableMap(inputFlashMap));
@@ -864,6 +867,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		request.setAttribute(FLASH_MAP_MANAGER_ATTRIBUTE, this.flashMapManager);
 
 		try {
+			//分发请求到controller
 			doDispatch(request, response);
 		}
 		finally {
@@ -899,7 +903,9 @@ public class DispatcherServlet extends FrameworkServlet {
 			Exception dispatchException = null;
 
 			try {
+				//如果是文件上传则转换为文件上传request，否则返回普通request
 				processedRequest = checkMultipart(request);
+				//processedRequest != request说明已经将request解析为文件上传类型的request
 				multipartRequestParsed = (processedRequest != request);
 
 				// Determine handler for the current request.
@@ -1049,6 +1055,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	protected HttpServletRequest checkMultipart(HttpServletRequest request) throws MultipartException {
 		if (this.multipartResolver != null && this.multipartResolver.isMultipart(request)) {
 			if (WebUtils.getNativeRequest(request, MultipartHttpServletRequest.class) != null) {
+				//Request已经是MultipartHttpServletRequest类型，如果不是在forward中，这通常是由web.xml中的其它MultipartFilter引起的
 				logger.debug("Request is already a MultipartHttpServletRequest - if not in a forward, " +
 						"this typically results from an additional MultipartFilter in web.xml");
 			}

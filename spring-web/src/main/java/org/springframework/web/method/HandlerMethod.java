@@ -51,12 +51,18 @@ public class HandlerMethod {
 	/** Logger that is available to subclasses */
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	/**
+	 * controller实例
+	 * */
 	private final Object bean;
 
 	private final BeanFactory beanFactory;
 
 	private final Class<?> beanType;
 
+	/**
+	 * controller中的方法
+	 * */
 	private final Method method;
 
 	private final Method bridgedMethod;

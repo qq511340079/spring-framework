@@ -44,6 +44,12 @@ import javax.servlet.http.HttpServletResponse;
  * @author Juergen Hoeller
  * @see org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter
  * @see org.springframework.web.servlet.handler.SimpleServletHandlerAdapter
+ *
+ * Handler(controller)适配器，顾名思义用来适配不同的Handler
+ * 默认实现类有：
+ * RequestMappingHandlerAdapter(处理使用@RequestMapping注解的controller)
+ * SimpleControllerHandlerAdapter(处理实现了Controoler接口的controller)
+ * HttpRequestHandlerAdapter(处理实现了HttpRequestHandler接口的controller)
  */
 public interface HandlerAdapter {
 

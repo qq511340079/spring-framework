@@ -106,12 +106,14 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	 */
 	public void invokeAndHandle(ServletWebRequest webRequest,
 			ModelAndViewContainer mavContainer, Object... providedArgs) throws Exception {
-
+		//执行请求对应的controller方法
 		Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
+		//如果controller的方法被@ResponseStatus注解标识，则根据注解设置响应的状态码
 		setResponseStatus(webRequest);
 
 		if (returnValue == null) {
 			if (isRequestNotModified(webRequest) || hasResponseStatus() || mavContainer.isRequestHandled()) {
+				//设置请求已经处理完成标识
 				mavContainer.setRequestHandled(true);
 				return;
 			}
@@ -120,9 +122,9 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 			mavContainer.setRequestHandled(true);
 			return;
 		}
-
 		mavContainer.setRequestHandled(false);
 		try {
+			//处理返回值
 			this.returnValueHandlers.handleReturnValue(
 					returnValue, getReturnValueType(returnValue), mavContainer, webRequest);
 		}

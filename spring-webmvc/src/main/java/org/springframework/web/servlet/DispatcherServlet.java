@@ -917,6 +917,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		HttpServletRequest processedRequest = request;
+		//HandlerExecutionChain封装了请求映射到的handler(controller中的方法)，以及当前请求的拦截器
 		HandlerExecutionChain mappedHandler = null;
 		boolean multipartRequestParsed = false;
 
@@ -927,20 +928,24 @@ public class DispatcherServlet extends FrameworkServlet {
 			Exception dispatchException = null;
 
 			try {
+				//如果是文件上传则转换为文件上传request，否则返回普通request
 				processedRequest = checkMultipart(request);
+				//processedRequest != request说明已经将request解析为文件上传类型的request
 				multipartRequestParsed = (processedRequest != request);
 
-				// Determine handler for the current request.
+				// 获取当前请求对应的HandlerExecutionChain
 				mappedHandler = getHandler(processedRequest);
+				//如果没有找到当前请求对应的handler，则返回404
 				if (mappedHandler == null || mappedHandler.getHandler() == null) {
 					noHandlerFound(processedRequest, response);
 					return;
 				}
 
-				// Determine handler adapter for the current request.
+				// 获取当前请求的HandlerAdapter，有RequestMappingHandlerAdapter(处理使用@RequestMapping注解的controller)、SimpleControllerHandlerAdapter(处理实现了Controoler接口的controller)、HttpRequestHandlerAdapter(处理实现了HttpRequestHandler接口的controller)
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
+				// 处理请求头中的last-modified
 				String method = request.getMethod();
 				boolean isGet = "GET".equals(method);
 				if (isGet || "HEAD".equals(method)) {
@@ -952,27 +957,30 @@ public class DispatcherServlet extends FrameworkServlet {
 						return;
 					}
 				}
-
+                //调用拦截器的preHandle方法
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
 
-				// Actually invoke the handler.
+				// 调用请求对应controller的方法
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
 					return;
 				}
-
+				//如果返回的ModelAndView中没有viewName，则根据请求的uri设置一个默认的
 				applyDefaultViewName(processedRequest, mv);
+				//调用拦截器的postHandle
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
 				dispatchException = ex;
 			}
+			//对请求分派的结果进行处理(异常处理、渲染视图、调用拦截器afterCompletion方法)
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		}
 		catch (Exception ex) {
+			//调用拦截器afterCompletion方法，异常处理器无法处理的异常会走到这里
 			triggerAfterCompletion(processedRequest, response, mappedHandler, ex);
 		}
 		catch (Throwable err) {
@@ -1009,7 +1017,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	private void processDispatchResult(HttpServletRequest request, HttpServletResponse response,
 			HandlerExecutionChain mappedHandler, ModelAndView mv, Exception exception) throws Exception {
-
+		//异常处理程序HandlerExceptionResolver是否返回了要渲染的ModelAndView
 		boolean errorView = false;
 
 		if (exception != null) {
@@ -1019,15 +1027,17 @@ public class DispatcherServlet extends FrameworkServlet {
 			}
 			else {
 				Object handler = (mappedHandler != null ? mappedHandler.getHandler() : null);
+				//调用HandlerExceptionResolver进行处理异常
 				mv = processHandlerException(request, response, handler, exception);
 				errorView = (mv != null);
 			}
 		}
 
-		// Did the handler return a view to render?
+		// 处理程序是否返回了要渲染的ModelAndView
 		if (mv != null && !mv.wasCleared()) {
 			render(mv, request, response);
 			if (errorView) {
+				//清空request中的异常相关信息
 				WebUtils.clearErrorRequestAttributes(request);
 			}
 		}
@@ -1044,6 +1054,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		if (mappedHandler != null) {
+			//调用拦截器的afterCompletion方法
 			mappedHandler.triggerAfterCompletion(request, response, null);
 		}
 	}
@@ -1080,6 +1091,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	protected HttpServletRequest checkMultipart(HttpServletRequest request) throws MultipartException {
 		if (this.multipartResolver != null && this.multipartResolver.isMultipart(request)) {
 			if (WebUtils.getNativeRequest(request, MultipartHttpServletRequest.class) != null) {
+				//Request已经是MultipartHttpServletRequest类型，如果不是在forward中，这通常是由web.xml中的其它MultipartFilter引起的
 				logger.debug("Request is already a MultipartHttpServletRequest - if not in a forward, " +
 						"this typically results from an additional MultipartFilter in web.xml");
 			}
@@ -1115,6 +1127,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @return the HandlerExecutionChain, or {@code null} if no handler could be found
 	 */
 	protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+		//从所有HandlerMapping中找出一个能处理当前请求的
 		for (HandlerMapping hm : this.handlerMappings) {
 			if (logger.isTraceEnabled()) {
 				logger.trace(
@@ -1181,28 +1194,32 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		// Check registered HandlerExceptionResolvers...
 		ModelAndView exMv = null;
+		//执行HandlerExceptionResolver
 		for (HandlerExceptionResolver handlerExceptionResolver : this.handlerExceptionResolvers) {
 			exMv = handlerExceptionResolver.resolveException(request, response, handler, ex);
+			//当有多个异常处理器时，可以通过返回ModelAndView来阻止后面的异常处理器执行
 			if (exMv != null) {
 				break;
 			}
 		}
 		if (exMv != null) {
+			//如果异常处理器返回的ModelAndView是空的，则将异常对象放到request中后返回null。tips：当异常处理程序不需要渲染视图时(比如需要返回JSON信息)返回一个空的ModelAndView即可
 			if (exMv.isEmpty()) {
 				request.setAttribute(EXCEPTION_ATTRIBUTE, ex);
 				return null;
 			}
-			// We might still need view name translation for a plain error model...
+			// 如果exMv没有设置视图(但是exMv的ModelMap不为空)，则根据请求的uri设置一个默认的视图
 			if (!exMv.hasView()) {
 				exMv.setViewName(getDefaultViewName(request));
 			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("Handler execution resulted in exception - forwarding to resolved error view: " + exMv, ex);
 			}
+			//将异常相关信息放到request中
 			WebUtils.exposeErrorRequestAttributes(request, ex, getServletName());
 			return exMv;
 		}
-
+		//当exMv为null时会走到这里，也就是所有HandlerExceptionResolver都无法处理这个异常
 		throw ex;
 	}
 

@@ -184,7 +184,7 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 		parserContext.pushContainingComponent(compDefinition);
 
 		RuntimeBeanReference contentNegotiationManager = getContentNegotiationManager(element, source, parserContext);
-
+		//RequestMappingHandlerMapping用来解析@RequestMapping注解
 		RootBeanDefinition handlerMappingDef = new RootBeanDefinition(RequestMappingHandlerMapping.class);
 		handlerMappingDef.setSource(source);
 		handlerMappingDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
@@ -311,6 +311,7 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 		parserContext.registerComponent(new BeanComponentDefinition(mappedCsInterceptorDef, mappedInterceptorName));
 
 		// Ensure BeanNameUrlHandlerMapping (SPR-8289) and default HandlerAdapters are not "turned off"
+		//注册BeanNameUrlHandlerMapping、HttpRequestHandlerAdapter、SimpleControllerHandlerAdapter到容器
 		MvcNamespaceUtils.registerDefaultComponents(parserContext, source);
 
 		parserContext.popAndRegisterContainingComponent();

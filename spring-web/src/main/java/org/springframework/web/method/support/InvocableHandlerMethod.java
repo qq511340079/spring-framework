@@ -125,6 +125,7 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	public Object invokeForRequest(NativeWebRequest request, ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
 
+		//获取controller中方法的参数
 		Object[] args = getMethodArgumentValues(request, mavContainer, providedArgs);
 		if (logger.isTraceEnabled()) {
 			StringBuilder sb = new StringBuilder("Invoking [");
@@ -133,6 +134,7 @@ public class InvocableHandlerMethod extends HandlerMethod {
 			sb.append(Arrays.asList(args));
 			logger.trace(sb.toString());
 		}
+		//实际调用controller的方法
 		Object returnValue = doInvoke(args);
 		if (logger.isTraceEnabled()) {
 			logger.trace("Method [" + getMethod().getName() + "] returned [" + returnValue + "]");
@@ -145,7 +147,7 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	 */
 	private Object[] getMethodArgumentValues(NativeWebRequest request, ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
-
+		//获取MethodParameter数组，封装了controller中方法的参数信息
 		MethodParameter[] parameters = getMethodParameters();
 		Object[] args = new Object[parameters.length];
 		for (int i = 0; i < parameters.length; i++) {
@@ -158,6 +160,7 @@ public class InvocableHandlerMethod extends HandlerMethod {
 			}
 			if (this.argumentResolvers.supportsParameter(parameter)) {
 				try {
+					//解析出来方法的参数
 					args[i] = this.argumentResolvers.resolveArgument(
 							parameter, mavContainer, request, this.dataBinderFactory);
 					continue;

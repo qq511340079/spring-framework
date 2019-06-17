@@ -724,7 +724,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		ModelAndView mav;
 		checkRequest(request);
 
-		// Execute invokeHandlerMethod in synchronized block if required.
+		// 如果synchronizeOnSession=true，表示在互斥锁下执行controller
 		if (this.synchronizeOnSession) {
 			HttpSession session = request.getSession(false);
 			if (session != null) {
@@ -738,8 +738,8 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 				mav = invokeHandlerMethod(request, response, handlerMethod);
 			}
 		}
-		else {
-			// No synchronization on session demanded at all...
+		else {//一般走这里，不需要互斥锁
+			//执行HandlerMethod
 			mav = invokeHandlerMethod(request, response, handlerMethod);
 		}
 
@@ -796,9 +796,11 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 
 		ServletWebRequest webRequest = new ServletWebRequest(request, response);
 
+		//获取WebDataBinderFactory，包含了@InitBinder注解标识的方法
 		WebDataBinderFactory binderFactory = getDataBinderFactory(handlerMethod);
+		//获取ModelFactory，包含了@ModelAttribute注解标识的方法
 		ModelFactory modelFactory = getModelFactory(handlerMethod, binderFactory);
-
+		//创建ServletInvocableHandlerMethod，封装了请求的controller实例、方法、@ResponseStatus注解等信息
 		ServletInvocableHandlerMethod invocableMethod = createInvocableHandlerMethod(handlerMethod);
 		invocableMethod.setHandlerMethodArgumentResolvers(this.argumentResolvers);
 		invocableMethod.setHandlerMethodReturnValueHandlers(this.returnValueHandlers);
@@ -809,7 +811,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		mavContainer.addAllAttributes(RequestContextUtils.getInputFlashMap(request));
 		modelFactory.initModel(webRequest, mavContainer, invocableMethod);
 		mavContainer.setIgnoreDefaultModelOnRedirect(this.ignoreDefaultModelOnRedirect);
-
+		//TODO 异步请求
 		AsyncWebRequest asyncWebRequest = WebAsyncUtils.createAsyncWebRequest(request, response);
 		asyncWebRequest.setTimeout(this.asyncRequestTimeout);
 
@@ -828,7 +830,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			}
 			invocableMethod = invocableMethod.wrapConcurrentResult(result);
 		}
-
+		//执行请求对应的controller的方法
 		invocableMethod.invokeAndHandle(webRequest, mavContainer);
 		if (asyncManager.isConcurrentHandlingStarted()) {
 			return null;
@@ -882,15 +884,19 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 
 	private WebDataBinderFactory getDataBinderFactory(HandlerMethod handlerMethod) throws Exception {
 		Class<?> handlerType = handlerMethod.getBeanType();
+		//从缓存中获取controller中被@InitBinder注解标识的方法
 		Set<Method> methods = this.initBinderCache.get(handlerType);
+		//缓存中没有获取到的话则从类中寻找并放入缓存
 		if (methods == null) {
 			methods = MethodIntrospector.selectMethods(handlerType, INIT_BINDER_METHODS);
 			this.initBinderCache.put(handlerType, methods);
 		}
 		List<InvocableHandlerMethod> initBinderMethods = new ArrayList<InvocableHandlerMethod>();
-		// Global methods first
+		// Global methods first，全局的InitBinder，ControllerAdviceBean封装了被@ControllerAdvice注解标识的类的信息
 		for (Entry<ControllerAdviceBean, Set<Method>> entry : this.initBinderAdviceCache.entrySet()) {
+			//ControllerAdviceBean是否符合当前controller类
 			if (entry.getKey().isApplicableToBeanType(handlerType)) {
+				//获取ControllerAdvice实例(被@ControllerAdvice注解标识的类)
 				Object bean = entry.getKey().resolveBean();
 				for (Method method : entry.getValue()) {
 					initBinderMethods.add(createInitBinderMethod(bean, method));
@@ -901,6 +907,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			Object bean = handlerMethod.getBean();
 			initBinderMethods.add(createInitBinderMethod(bean, method));
 		}
+		//创建ServletRequestDataBinderFactory实例
 		return createDataBinderFactory(initBinderMethods);
 	}
 
@@ -930,6 +937,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			ModelFactory modelFactory, NativeWebRequest webRequest) throws Exception {
 
 		modelFactory.updateModel(webRequest, mavContainer);
+		//如果请求已经处理完成则返回null
 		if (mavContainer.isRequestHandled()) {
 			return null;
 		}

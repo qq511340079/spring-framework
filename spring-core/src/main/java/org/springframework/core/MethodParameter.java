@@ -304,10 +304,11 @@ public class MethodParameter {
 	 */
 	public Class<?> getParameterType() {
 		if (this.parameterType == null) {
+			//parameterIndex < 0 标识是返回参数
 			if (this.parameterIndex < 0) {
 				this.parameterType = (this.method != null ? this.method.getReturnType() : null);
 			}
-			else {
+			else {//请求参数
 				this.parameterType = (this.method != null ?
 					this.method.getParameterTypes()[this.parameterIndex] :
 					this.constructor.getParameterTypes()[this.parameterIndex]);

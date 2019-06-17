@@ -216,7 +216,7 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 		bindingDef.getPropertyValues().add("conversionService", conversionService);
 		bindingDef.getPropertyValues().add("validator", validator);
 		bindingDef.getPropertyValues().add("messageCodesResolver", messageCodesResolver);
-
+		//获取MessageConverter的BeanDefinition
 		ManagedList<?> messageConverters = getMessageConverters(element, source, parserContext);
 		ManagedList<?> argumentResolvers = getArgumentResolvers(element, parserContext);
 		ManagedList<?> returnValueHandlers = getReturnValueHandlers(element, parserContext);
@@ -539,7 +539,7 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 				messageConverters.add(object);
 			}
 		}
-
+		//注册默认的HttpMessageConverter
 		if (convertersElement == null || Boolean.valueOf(convertersElement.getAttribute("register-defaults"))) {
 			messageConverters.setSource(source);
 			messageConverters.add(createConverterDefinition(ByteArrayHttpMessageConverter.class, source));

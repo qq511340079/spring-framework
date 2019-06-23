@@ -324,7 +324,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 
 	/**
 	 * Build a {@link HandlerExecutionChain} for the given handler, including
-	 * applicable interceptors.
+	 * applicable interceptors.=
 	 * <p>The default implementation builds a standard {@link HandlerExecutionChain}
 	 * with the given handler, the handler mapping's common interceptors, and any
 	 * {@link MappedInterceptor}s matching to the current request URL. Subclasses

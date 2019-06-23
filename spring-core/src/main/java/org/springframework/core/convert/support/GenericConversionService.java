@@ -78,7 +78,7 @@ public class GenericConversionService implements ConfigurableConversionService {
 
 
 	// implementing ConverterRegistry
-
+	//添加Converter类型的转换器需要先解析接口实现类的泛型类型获取sourceType和targetType，然后创建ConvertiblePair对象
 	public void addConverter(Converter<?, ?> converter) {
 		GenericConverter.ConvertiblePair typeInfo = getRequiredTypeInfo(converter, Converter.class);
 		if (typeInfo == null) {

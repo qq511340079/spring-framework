@@ -67,6 +67,7 @@ public interface GenericConverter {
 
 	/**
 	 * Holder for a source-to-target class pair.
+	 * 封装了sourceType --> targetType，表示可转换的一对对象
 	 */
 	public static final class ConvertiblePair {
 

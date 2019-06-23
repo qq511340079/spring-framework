@@ -165,10 +165,12 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 
 		configurePathMatchingProperties(handlerMappingDef, element, parserContext);
 
+		//解析标签中的conversion-service属性，没有的话使用默认的FormattingConversionServiceFactoryBean(注意是FactoryBean，所以会调用getObject方法获取真正的实例对象)
 		RuntimeBeanReference conversionService = getConversionService(element, source, parserContext);
 		RuntimeBeanReference validator = getValidator(element, source, parserContext);
 		RuntimeBeanReference messageCodesResolver = getMessageCodesResolver(element);
-
+        //ConfigurableWebBindingInitializer，可配置的Web请求数据绑定初始化器，通过initBinder方法初始化请求数据绑定器
+        //springmvc在收到一个请求后会通过创建WebDataBinder来把请求绑定到方法的入参上，而ConfigurableWebBindingInitializer就是用来初始化每一个请求的WebDataBinder
 		RootBeanDefinition bindingDef = new RootBeanDefinition(ConfigurableWebBindingInitializer.class);
 		bindingDef.setSource(source);
 		bindingDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
@@ -176,14 +178,17 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 		bindingDef.getPropertyValues().add("validator", validator);
 		bindingDef.getPropertyValues().add("messageCodesResolver", messageCodesResolver);
 
+		//解析message-converters子标签、注册默认的HttpMessageConverter
 		ManagedList<?> messageConverters = getMessageConverters(element, source, parserContext);
+		//解析argument-resolvers子标签
 		ManagedList<?> argumentResolvers = getArgumentResolvers(element, parserContext);
+		//解析return-value-handlers子标签
 		ManagedList<?> returnValueHandlers = getReturnValueHandlers(element, parserContext);
 		String asyncTimeout = getAsyncTimeout(element);
 		RuntimeBeanReference asyncExecutor = getAsyncExecutor(element);
 		ManagedList<?> callableInterceptors = getCallableInterceptors(element, source, parserContext);
 		ManagedList<?> deferredResultInterceptors = getDeferredResultInterceptors(element, source, parserContext);
-
+        //RequestMappingHandlerAdapter，用来处理@RequestMapping注解标识的接口的请求
 		RootBeanDefinition handlerAdapterDef = new RootBeanDefinition(RequestMappingHandlerAdapter.class);
 		handlerAdapterDef.setSource(source);
 		handlerAdapterDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
@@ -261,10 +266,11 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 
 	private RuntimeBeanReference getConversionService(Element element, Object source, ParserContext parserContext) {
 		RuntimeBeanReference conversionServiceRef;
+		//解析conversion-service属性
 		if (element.hasAttribute("conversion-service")) {
 			conversionServiceRef = new RuntimeBeanReference(element.getAttribute("conversion-service"));
 		}
-		else {
+		else {//没有配置conversion-service属性，则注册默认的FormattingConversionServiceFactoryBean
 			RootBeanDefinition conversionDef = new RootBeanDefinition(FormattingConversionServiceFactoryBean.class);
 			conversionDef.setSource(source);
 			conversionDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);

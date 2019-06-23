@@ -18,6 +18,7 @@ package org.springframework.util;
 
 /**
  * Simple strategy interface for resolving a String value.
+ * 用来解析String类型值的简单策略接口
  * Used by {@link org.springframework.beans.factory.config.ConfigurableBeanFactory}.
  *
  * @author Juergen Hoeller

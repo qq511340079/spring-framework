@@ -59,12 +59,14 @@ import org.springframework.util.StringValueResolver;
  * @author Rossen Stoyanchev
  * @author Chris Beams
  * @since 3.0
+ *
+ * 实现了InitializingBean接口，afterPropertiesSet方法定义了初始化逻辑
  */
 public class FormattingConversionServiceFactoryBean
 		implements FactoryBean<FormattingConversionService>, EmbeddedValueResolverAware, InitializingBean {
-
+    //自定义converter,可以是Converter、ConverterFactory、GenericConverter类型
 	private Set<?> converters;
-
+    //自定义formatter，可以是Formatter、AnnotationFormatterFactory类型
 	private Set<?> formatters;
 
 	private Set<FormatterRegistrar> formatterRegistrars;
@@ -132,8 +134,12 @@ public class FormattingConversionServiceFactoryBean
 
 	@Override
 	public void afterPropertiesSet() {
+		//创建DefaultFormattingConversionService实例，赋值给conversionService变量，初始化默认converter和formatter(registerDefaultFormat为true才设置默认formatter)
+        //converter和formatter的区别：converter用来将数据从一种类型转换为另一种类型，formatter用来格式化数据，比如日期
 		this.conversionService = new DefaultFormattingConversionService(this.embeddedValueResolver, this.registerDefaultFormatters);
+		//注册自定义的Converter到conversionService
 		ConversionServiceFactory.registerConverters(this.converters, this.conversionService);
+        //注册自定义Formatter到conversionService
 		registerFormatters();
 	}
 
@@ -153,6 +159,7 @@ public class FormattingConversionServiceFactoryBean
 			}
 		}
 		if (this.formatterRegistrars != null) {
+		    //使用Formatter注册器的方式注册Formatter
 			for (FormatterRegistrar registrar : this.formatterRegistrars) {
 				registrar.registerFormatters(this.conversionService);
 			}

@@ -93,7 +93,7 @@ public class GenericConversionService implements ConfigurableConversionService {
 
 
 	// ConverterRegistry implementation
-
+	//添加Converter类型的转换器需要先解析接口实现类的泛型类型获取sourceType和targetType，然后创建ConvertiblePair对象
 	@Override
 	public void addConverter(Converter<?, ?> converter) {
 		ResolvableType[] typeInfo = getRequiredTypeInfo(converter, Converter.class);

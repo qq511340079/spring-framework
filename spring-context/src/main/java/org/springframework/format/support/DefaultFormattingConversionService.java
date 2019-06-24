@@ -87,8 +87,11 @@ public class DefaultFormattingConversionService extends FormattingConversionServ
 	 */
 	public DefaultFormattingConversionService(StringValueResolver embeddedValueResolver, boolean registerDefaultFormatters) {
 		setEmbeddedValueResolver(embeddedValueResolver);
+		//添加默认的converter
 		DefaultConversionService.addDefaultConverters(this);
+		//如果参数registerDefaultFormatters为true，则添加默认的Formatter
 		if (registerDefaultFormatters) {
+			//添加日期相关Formatter
 			addDefaultFormatters(this);
 		}
 	}

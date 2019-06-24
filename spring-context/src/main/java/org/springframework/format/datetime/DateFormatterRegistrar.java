@@ -55,11 +55,14 @@ public class DateFormatterRegistrar implements FormatterRegistrar {
 
 	@Override
 	public void registerFormatters(FormatterRegistry registry) {
+		//添加日期相关的Converter
 		addDateConverters(registry);
+		//添加DateTimeFormatAnnotationFormatterFactory，用来解析@DateTimeFormater注解格式化日期
 		registry.addFormatterForFieldAnnotation(new DateTimeFormatAnnotationFormatterFactory());
 
 		// In order to retain back compatibility we only register Date/Calendar
 		// types when a user defined formatter is specified (see SPR-10105)
+        //如果dateFormatter不为空则将其注册到FormatterRegistry，可以通过设置dateFormatter(配置对象的属性)用来解析固定格式的Date/Calendar类型的参数
 		if (this.dateFormatter != null) {
 			registry.addFormatter(this.dateFormatter);
 			registry.addFormatterForFieldType(Calendar.class, this.dateFormatter);

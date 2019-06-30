@@ -58,6 +58,9 @@ public class ResponseStatusExceptionResolver extends AbstractHandlerExceptionRes
 	}
 
 
+	/**
+	 * 查找Exception类上@ResponseStatus注解，如果找到@ResponseStatus注解则使用该注解的属性对异常进行处理
+	 * */
 	@Override
 	protected ModelAndView doResolveException(HttpServletRequest request, HttpServletResponse response,
 			Object handler, Exception ex) {

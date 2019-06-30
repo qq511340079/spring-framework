@@ -51,6 +51,8 @@ import org.springframework.web.util.NestedServletException;
  *
  * @author Rossen Stoyanchev
  * @since 3.1
+ *
+ * 代表一个可执行体，封装了bean和bean的某个方法的信息
  */
 public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 
@@ -106,7 +108,7 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	 */
 	public void invokeAndHandle(ServletWebRequest webRequest,
 			ModelAndViewContainer mavContainer, Object... providedArgs) throws Exception {
-		//执行请求对应的controller方法
+		//执行bean(不限于controller)的方法
 		Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
 		//如果controller的方法被@ResponseStatus注解标识，则根据注解设置响应的状态码
 		setResponseStatus(webRequest);
@@ -118,7 +120,7 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 				return;
 			}
 		}
-		else if (StringUtils.hasText(this.responseReason)) {
+		else if (StringUtils.hasText(this.responseReason)) {//@ResponseStatus注解的reason字段不为空
 			mavContainer.setRequestHandled(true);
 			return;
 		}

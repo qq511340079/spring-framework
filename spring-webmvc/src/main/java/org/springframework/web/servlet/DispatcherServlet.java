@@ -1054,7 +1054,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		if (mappedHandler != null) {
-			//调用拦截器的afterCompletion方法
+			//调用拦截器的afterCompletion方法,当异常被ExceptionHandlerResolver处理后，拦截器的afterCompletion方法的exception参数就为null
 			mappedHandler.triggerAfterCompletion(request, response, null);
 		}
 	}

@@ -488,7 +488,9 @@ public class GenericConversionService implements ConfigurableConversionService {
 				new LinkedHashMap<ConvertiblePair, ConvertersForPair>(36);
 
 		public void add(GenericConverter converter) {
+			//获取转换器适用的转换类型
 			Set<ConvertiblePair> convertibleTypes = converter.getConvertibleTypes();
+			//如果convertibleTypes==null，判断是否是ConditionalConverter类型(可以通过matches方法判断是否适用转换类型)
 			if (convertibleTypes == null) {
 				Assert.state(converter instanceof ConditionalConverter,
 						"Only conditional converters may return null convertible types");

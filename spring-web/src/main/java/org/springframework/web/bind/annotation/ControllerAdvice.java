@@ -49,10 +49,13 @@ import org.springframework.stereotype.Component;
  * <p>Note that those checks are done at runtime, so adding many attributes and using
  * multiple strategies may have negative impacts (complexity, performance).
  *
+ *
  * @author Rossen Stoyanchev
  * @author Brian Clozel
  * @author Sam Brannen
  * @since 3.2
+ *
+ * @ControllerAdvice注解标识的类表示是一个全局的处理配置，类中的@ExceptionHandler、@ModelAttribute、@InitBinder注解对所有@RequestMapping标识的方法生效
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

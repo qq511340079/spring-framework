@@ -57,7 +57,7 @@ public class ExceptionHandlerMethodResolver {
 	 */
 	private static final Method NO_METHOD_FOUND = ClassUtils.getMethodIfAvailable(System.class, "currentTimeMillis");
 
-
+    //Throwable --> 可以处理该异常的方法
 	private final Map<Class<? extends Throwable>, Method> mappedMethods =
 			new ConcurrentHashMap<Class<? extends Throwable>, Method>(16);
 
@@ -70,8 +70,11 @@ public class ExceptionHandlerMethodResolver {
 	 * @param handlerType the type to introspect
 	 */
 	public ExceptionHandlerMethodResolver(Class<?> handlerType) {
+		//遍历handlerType类中所有带@ExceptionHandler注解的方法
 		for (Method method : MethodIntrospector.selectMethods(handlerType, EXCEPTION_HANDLER_METHODS)) {
+			//遍历被@ExceptionHandler注解标识的方法可以处理的异常类型
 			for (Class<? extends Throwable> exceptionType : detectExceptionMappings(method)) {
+				//添加异常类型和对应的处理方法的映射关系
 				addExceptionMapping(exceptionType, method);
 			}
 		}
@@ -84,8 +87,11 @@ public class ExceptionHandlerMethodResolver {
 	 */
 	@SuppressWarnings("unchecked")
 	private List<Class<? extends Throwable>> detectExceptionMappings(Method method) {
+		//保存@ExceptionHandler注解的value，表示方法可以处理哪些异常
 		List<Class<? extends Throwable>> result = new ArrayList<Class<? extends Throwable>>();
+		//将方法的@ExceptionHandler注解的value放入result集合
 		detectAnnotationExceptionMappings(method, result);
+		//如果result是空的，则再从方法的入参中寻找
 		if (result.isEmpty()) {
 			for (Class<?> paramType : method.getParameterTypes()) {
 				if (Throwable.class.isAssignableFrom(paramType)) {
@@ -124,6 +130,7 @@ public class ExceptionHandlerMethodResolver {
 	 * @return a Method to handle the exception, or {@code null} if none found
 	 */
 	public Method resolveMethod(Exception exception) {
+	    //解析出exception对应的处理方法
 		return resolveMethodByExceptionType(exception.getClass());
 	}
 
@@ -134,9 +141,13 @@ public class ExceptionHandlerMethodResolver {
 	 * @return a Method to handle the exception, or {@code null} if none found
 	 */
 	public Method resolveMethodByExceptionType(Class<? extends Exception> exceptionType) {
+	    //从缓存中获取exceptionType对应的处理方法
 		Method method = this.exceptionLookupCache.get(exceptionType);
+		//缓存中没获取到
 		if (method == null) {
+		    //查找exceptionType对应的处理方法
 			method = getMappedMethod(exceptionType);
+			//写缓存
 			this.exceptionLookupCache.put(exceptionType, (method != null ? method : NO_METHOD_FOUND));
 		}
 		return (method != NO_METHOD_FOUND ? method : null);
@@ -152,6 +163,7 @@ public class ExceptionHandlerMethodResolver {
 				matches.add(mappedException);
 			}
 		}
+		//
 		if (!matches.isEmpty()) {
 			Collections.sort(matches, new ExceptionDepthComparator(exceptionType));
 			return this.mappedMethods.get(matches.get(0));

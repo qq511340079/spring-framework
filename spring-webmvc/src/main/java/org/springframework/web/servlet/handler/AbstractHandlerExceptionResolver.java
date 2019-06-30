@@ -126,17 +126,20 @@ public abstract class AbstractHandlerExceptionResolver implements HandlerExcepti
 	@Override
 	public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response,
 			Object handler, Exception ex) {
-
+		//判断HandlerExpcetionResolver是否适用
 		if (shouldApplyTo(request, handler)) {
 			// Log exception, both at debug log level and at warn level, if desired.
 			if (this.logger.isDebugEnabled()) {
 				this.logger.debug("Resolving exception from handler [" + handler + "]: " + ex);
 			}
+			//打印日志
 			logException(ex, request);
 			prepareResponse(ex, response);
+			//调用实现类的doResolveException方法，解析异常
 			return doResolveException(request, response, handler, ex);
 		}
 		else {
+			// /返回null，表示当前异常解析器无法处理当前请求的方法，由下一个异常解析器处理
 			return null;
 		}
 	}
@@ -155,6 +158,7 @@ public abstract class AbstractHandlerExceptionResolver implements HandlerExcepti
 	 * @see #setMappedHandlerClasses
 	 */
 	protected boolean shouldApplyTo(HttpServletRequest request, Object handler) {
+		//如果handler!=null
 		if (handler != null) {
 			if (this.mappedHandlers != null && this.mappedHandlers.contains(handler)) {
 				return true;
@@ -168,6 +172,7 @@ public abstract class AbstractHandlerExceptionResolver implements HandlerExcepti
 			}
 		}
 		// Else only apply if there are no explicit handler mappings.
+		//走到这里说明handler==null或者mappedHandlers和mappedHandlerClasses都没匹配上
 		return (this.mappedHandlers == null && this.mappedHandlerClasses == null);
 	}
 

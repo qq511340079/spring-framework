@@ -281,6 +281,8 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 		mappedCsInterceptorDef.getConstructorArgumentValues().addIndexedArgumentValue(1, csInterceptorDef);
 		String mappedInterceptorName = readerContext.registerWithGeneratedName(mappedCsInterceptorDef);
 
+
+		 // ExceptionHandlerExceptionResolver，使用全局的(@ControllerAdvice标识的类下的)@ExceptionHandler注解标识的方法处理异常
 		RootBeanDefinition exceptionHandlerExceptionResolver = new RootBeanDefinition(ExceptionHandlerExceptionResolver.class);
 		exceptionHandlerExceptionResolver.setSource(source);
 		exceptionHandlerExceptionResolver.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
@@ -291,13 +293,14 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 
 		String methodExceptionResolverName = readerContext.registerWithGeneratedName(exceptionHandlerExceptionResolver);
 
+		//ResponseStatusExceptionResolver，根据抛出的异常类的@ResponseStatus注解信息来处理异常
 		RootBeanDefinition responseStatusExceptionResolver = new RootBeanDefinition(ResponseStatusExceptionResolver.class);
 		responseStatusExceptionResolver.setSource(source);
 		responseStatusExceptionResolver.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 		responseStatusExceptionResolver.getPropertyValues().add("order", 1);
 		String responseStatusExceptionResolverName =
 				readerContext.registerWithGeneratedName(responseStatusExceptionResolver);
-
+        //DefaultHandlerExceptionResolver，用来处理请求过程中springmvc抛出的一些异常，比如HttpRequestMethodNotSupportedException、NoSuchRequestHandlingMethodException
 		RootBeanDefinition defaultExceptionResolver = new RootBeanDefinition(DefaultHandlerExceptionResolver.class);
 		defaultExceptionResolver.setSource(source);
 		defaultExceptionResolver.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);

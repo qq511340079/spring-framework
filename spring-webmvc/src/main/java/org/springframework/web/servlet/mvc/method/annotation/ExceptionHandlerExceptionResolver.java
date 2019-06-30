@@ -240,10 +240,12 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 		initExceptionHandlerAdviceCache();
 
 		if (this.argumentResolvers == null) {
+		    //获取默认的参数解析器，用来解析@ExpcetionHandler标识的方法入参
 			List<HandlerMethodArgumentResolver> resolvers = getDefaultArgumentResolvers();
 			this.argumentResolvers = new HandlerMethodArgumentResolverComposite().addResolvers(resolvers);
 		}
 		if (this.returnValueHandlers == null) {
+		    //获取默认的返回值处理器，用来处理@ExpcetionHandler标识的方法的返回值
 			List<HandlerMethodReturnValueHandler> handlers = getDefaultReturnValueHandlers();
 			this.returnValueHandlers = new HandlerMethodReturnValueHandlerComposite().addHandlers(handlers);
 		}
@@ -256,18 +258,24 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 		if (logger.isDebugEnabled()) {
 			logger.debug("Looking for exception mappings: " + getApplicationContext());
 		}
-
+		//所有@ControllerAdvice注解标识的类信息
 		List<ControllerAdviceBean> adviceBeans = ControllerAdviceBean.findAnnotatedBeans(getApplicationContext());
+		//排个序
 		AnnotationAwareOrderComparator.sort(adviceBeans);
 
+		//遍历被@ControllerAdvice标识的类
 		for (ControllerAdviceBean adviceBean : adviceBeans) {
+		    //创建ExceptionHandlerMethodResolver对象，解析被@ControllerAdvice标识的类中的@ExceptionHandler注解
 			ExceptionHandlerMethodResolver resolver = new ExceptionHandlerMethodResolver(adviceBean.getBeanType());
+			//如果resolver解析到了异常-->处理该异常的method的映射关系
 			if (resolver.hasExceptionMappings()) {
+			    //将adviceBean和resolver的关系缓存起来
 				this.exceptionHandlerAdviceCache.put(adviceBean, resolver);
 				if (logger.isInfoEnabled()) {
 					logger.info("Detected @ExceptionHandler methods in " + adviceBean);
 				}
 			}
+			//如果class类型是ResponseBodyAdvice，将其缓存到responseBodyAdvice
 			if (ResponseBodyAdvice.class.isAssignableFrom(adviceBean.getBeanType())) {
 				this.responseBodyAdvice.add(adviceBean);
 				if (logger.isInfoEnabled()) {
@@ -344,16 +352,21 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 
 	/**
 	 * Find an {@code @ExceptionHandler} method and invoke it to handle the raised exception.
+     *
+     * 为了方便描述
+     * 1.用ControllerAdvice Bean来表示被@ControllerAdvice注解修饰的实例
+     * 2.用ExceptionHandler Method来表示被@ExceptionHandler注解修饰的方法
 	 */
 	@Override
 	protected ModelAndView doResolveHandlerMethodException(HttpServletRequest request,
 			HttpServletResponse response, HandlerMethod handlerMethod, Exception exception) {
-
+        //寻找自定义的ExceptionHandler Method
 		ServletInvocableHandlerMethod exceptionHandlerMethod = getExceptionHandlerMethod(handlerMethod, exception);
+		//没有找到ServletInvocableHandlerMethod，则返回null，由下一个ExceptionHandlerResolver处理
 		if (exceptionHandlerMethod == null) {
 			return null;
 		}
-
+        //给exceptionHandlerMethod设置参数解析器和返回值处理器，用来解析并设置ExceptionHandler Method的入参和处理返回值
 		exceptionHandlerMethod.setHandlerMethodArgumentResolvers(this.argumentResolvers);
 		exceptionHandlerMethod.setHandlerMethodReturnValueHandlers(this.returnValueHandlers);
 
@@ -364,6 +377,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 			if (logger.isDebugEnabled()) {
 				logger.debug("Invoking @ExceptionHandler method: " + exceptionHandlerMethod);
 			}
+			//执行ExceptionHandler Method
 			exceptionHandlerMethod.invokeAndHandle(webRequest, mavContainer, exception, handlerMethod);
 		}
 		catch (Exception invocationEx) {
@@ -372,11 +386,11 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 			}
 			return null;
 		}
-
+        //如果请求已经被处理完成(比如则表示ExceptionHandler Method返回了JSON信息)，则返回空的ModelAndView
 		if (mavContainer.isRequestHandled()) {
 			return new ModelAndView();
 		}
-		else {
+		else {//mavContainer.isRequestHandled()返回false，则可能ExceptionHandler Method返回的是一个ModelAndView，需要渲染视图
 			ModelAndView mav = new ModelAndView().addAllObjects(mavContainer.getModel());
 			mav.setViewName(mavContainer.getViewName());
 			if (!mavContainer.isViewReference()) {
@@ -395,32 +409,45 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 	 * @param handlerMethod the method where the exception was raised (may be {@code null})
 	 * @param exception the raised exception
 	 * @return a method to handle the exception, or {@code null}
+     *
+     * 为了方便描述
+     * 1.用ControllerAdvice Bean来表示被@ControllerAdvice注解修饰的实例
+     * 2.用ExceptionHandler Method来表示被@ExceptionHandler注解修饰的方法
 	 */
 	protected ServletInvocableHandlerMethod getExceptionHandlerMethod(HandlerMethod handlerMethod, Exception exception) {
+	    //获取controller的class
 		Class<?> handlerType = (handlerMethod != null ? handlerMethod.getBeanType() : null);
 
+		//先从被请求的controller中寻找可以处理该异常的ExceptionHandler Method
 		if (handlerMethod != null) {
+		    //从缓存中获取ExceptionHandlerMethodResolver对象，ExceptionHandlerMethodResolver对象封装了当前controller和其中的所有ExceptionHandler Method
 			ExceptionHandlerMethodResolver resolver = this.exceptionHandlerCache.get(handlerType);
+			//缓存中没获取到的话则创建并放入缓存
 			if (resolver == null) {
 				resolver = new ExceptionHandlerMethodResolver(handlerType);
 				this.exceptionHandlerCache.put(handlerType, resolver);
 			}
+			//解析出exception对应的处理方法
 			Method method = resolver.resolveMethod(exception);
+			//method!=null，则将controller和异常对应的处理方法封装到ServletInvocableHandlerMethod对象后返回
 			if (method != null) {
 				return new ServletInvocableHandlerMethod(handlerMethod.getBean(), method);
 			}
 		}
-
+        //再从全局中寻找ExceptionHandler Method(@ControllerAdvice注解标识的类中被@ExceptionHandler注解标识的方法)
 		for (Entry<ControllerAdviceBean, ExceptionHandlerMethodResolver> entry : this.exceptionHandlerAdviceCache.entrySet()) {
+		    //判断ControllerAdvice Bean是否适用于当前请求的controller(根据@ControllerAdvice注解的几个属性来判断)
 			if (entry.getKey().isApplicableToBeanType(handlerType)) {
 				ExceptionHandlerMethodResolver resolver = entry.getValue();
+				//寻找ControllerAdvice Bean中的ExceptionHandler Method
 				Method method = resolver.resolveMethod(exception);
+				//如果找到了处理该异常的方法，则将ControllerAdvice Bean和ExceptionHandler Method封装到ServletInvocableHandlerMethod对象后返回
 				if (method != null) {
 					return new ServletInvocableHandlerMethod(entry.getKey().resolveBean(), method);
 				}
 			}
 		}
-
+        //没有找到能处理exception的method
 		return null;
 	}
 

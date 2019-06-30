@@ -55,7 +55,7 @@ public abstract class AbstractHandlerMethodExceptionResolver extends AbstractHan
 	@Override
 	protected final ModelAndView doResolveException(
 			HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
-
+		//调用实现类的doResolveHandlerMethodException方法，解析异常
 		return doResolveHandlerMethodException(request, response, (HandlerMethod) handler, ex);
 	}
 

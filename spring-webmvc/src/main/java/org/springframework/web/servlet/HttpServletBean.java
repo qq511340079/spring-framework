@@ -87,6 +87,7 @@ public abstract class HttpServletBean extends HttpServlet
 	/**
 	 * Set of required properties (Strings) that must be supplied as
 	 * config parameters to this servlet.
+	 * 必须属性（字符串）的集合，必须作为配置参数提供给此servlet。
 	 */
 	private final Set<String> requiredProperties = new HashSet<String>();
 
@@ -120,7 +121,9 @@ public abstract class HttpServletBean extends HttpServlet
 
 		// Set bean properties from init parameters.
 		try {
+		    //创建ServletConfigPropertyValues，将servlet的init-param转换为PropertyValue对象添加其中，requiredProperties集合表示必须的参数
 			PropertyValues pvs = new ServletConfigPropertyValues(getServletConfig(), this.requiredProperties);
+			//创建此对象(DispatcherServlet)的BeanWrapper
 			BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(this);
 			ResourceLoader resourceLoader = new ServletContextResourceLoader(getServletContext());
 			bw.registerCustomEditor(Resource.class, new ResourceEditor(resourceLoader, getEnvironment()));

@@ -125,9 +125,12 @@ public abstract class HttpServletBean extends HttpServlet
 			PropertyValues pvs = new ServletConfigPropertyValues(getServletConfig(), this.requiredProperties);
 			//创建此对象(DispatcherServlet)的BeanWrapper
 			BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(this);
+			//创建ServletContextResourceLoader，用来加载资源文件(比如读取配置classpath:application.xml对应的配置文件)
 			ResourceLoader resourceLoader = new ServletContextResourceLoader(getServletContext());
+			//注册目标字段类型为Resource的对应的PropertyEditor
 			bw.registerCustomEditor(Resource.class, new ResourceEditor(resourceLoader, getEnvironment()));
 			initBeanWrapper(bw);
+			//设置字段值
 			bw.setPropertyValues(pvs, true);
 		}
 		catch (BeansException ex) {

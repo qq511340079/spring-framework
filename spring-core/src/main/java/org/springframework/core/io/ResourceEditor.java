@@ -92,7 +92,9 @@ public class ResourceEditor extends PropertyEditorSupport {
 	@Override
 	public void setAsText(String text) {
 		if (StringUtils.hasText(text)) {
+			//使用propertyResolver解析placeholder引用的参数
 			String locationToUse = resolvePath(text).trim();
+			//使用resourceLoader加载locationToUse路径的资源文件，然后调用setValue方法设置
 			setValue(this.resourceLoader.getResource(locationToUse));
 		}
 		else {

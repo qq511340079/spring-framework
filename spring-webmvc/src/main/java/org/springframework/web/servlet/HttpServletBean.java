@@ -138,7 +138,7 @@ public abstract class HttpServletBean extends HttpServlet
 			throw ex;
 		}
 
-		// Let subclasses do whatever initialization they like.
+		// 执行initServletBean方法，子类可以重写该方法定义自己的初始化逻辑
 		initServletBean();
 
 		if (logger.isDebugEnabled()) {

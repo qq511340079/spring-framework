@@ -171,6 +171,7 @@ public class ContextLoader {
 		// by application developers.
 		try {
 			ClassPathResource resource = new ClassPathResource(DEFAULT_STRATEGIES_PATH, ContextLoader.class);
+			//加载ContextLoader.properties配置文件
 			defaultStrategies = PropertiesLoaderUtils.loadProperties(resource);
 		}
 		catch (IOException ex) {
@@ -293,7 +294,7 @@ public class ContextLoader {
 	 * @see #CONFIG_LOCATION_PARAM
 	 */
 	public WebApplicationContext initWebApplicationContext(ServletContext servletContext) {
-		//避免重复初始化
+		//servletContext中是否已经存在WebApplicationContext，避免重复创建
 		if (servletContext.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE) != null) {
 			throw new IllegalStateException(
 					"Cannot initialize context because there is already a root application context present - " +
@@ -308,10 +309,9 @@ public class ContextLoader {
 		long startTime = System.currentTimeMillis();
 
 		try {
-			// Store context in local instance variable, to guarantee that
-			// it is available on ServletContext shutdown.
+
 			if (this.context == null) {
-				//创建WebApplicationContext
+				//创建WebApplicationContext，并且赋值给context变量，在ServletContext关闭的时候使用
 				this.context = createWebApplicationContext(servletContext);
 			}
 			if (this.context instanceof ConfigurableWebApplicationContext) {
@@ -378,10 +378,12 @@ public class ContextLoader {
 	protected WebApplicationContext createWebApplicationContext(ServletContext sc) {
 		//确定WebApplicationContext的实现类，默认为XmlWebApplicationContext
 		Class<?> contextClass = determineContextClass(sc);
+		//contextClass必须是ConfigurableWebApplicationContext的实现类
 		if (!ConfigurableWebApplicationContext.class.isAssignableFrom(contextClass)) {
 			throw new ApplicationContextException("Custom context class [" + contextClass.getName() +
 					"] is not of type [" + ConfigurableWebApplicationContext.class.getName() + "]");
 		}
+		//创建contextClass实例
 		return (ConfigurableWebApplicationContext) BeanUtils.instantiateClass(contextClass);
 	}
 
@@ -394,9 +396,12 @@ public class ContextLoader {
 	 * @see org.springframework.web.context.support.XmlWebApplicationContext
 	 */
 	protected Class<?> determineContextClass(ServletContext servletContext) {
+		//从<context-param>中获取contextClass参数配置
 		String contextClassName = servletContext.getInitParameter(CONTEXT_CLASS_PARAM);
+		//如果配置了contextClass参数，则使用contextClass配置的Class
 		if (contextClassName != null) {
 			try {
+			    //获取Class
 				return ClassUtils.forName(contextClassName, ClassUtils.getDefaultClassLoader());
 			}
 			catch (ClassNotFoundException ex) {
@@ -404,9 +409,10 @@ public class ContextLoader {
 						"Failed to load custom context class [" + contextClassName + "]", ex);
 			}
 		}
-		else {
+		else {//没有配置contextClass参数，则寻找默认的WebApplicationContext实现类
 			contextClassName = defaultStrategies.getProperty(WebApplicationContext.class.getName());
 			try {
+                //获取Class
 				return ClassUtils.forName(contextClassName, ContextLoader.class.getClassLoader());
 			}
 			catch (ClassNotFoundException ex) {

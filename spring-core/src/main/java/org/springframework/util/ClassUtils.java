@@ -73,8 +73,8 @@ public abstract class ClassUtils {
 
 
 	/**
-	 * Map with primitive wrapper type as key and corresponding primitive
-	 * type as value, for example: Integer.class -> int.class.
+	 * 原始类型 < == > 包装类的映射和
+     * example：Integer.class -> int.class.  int.class -> Integer.class.
 	 */
 	private static final Map<Class<?>, Class<?>> primitiveWrapperTypeMap = new IdentityHashMap<Class<?>, Class<?>>(8);
 
@@ -85,14 +85,14 @@ public abstract class ClassUtils {
 	private static final Map<Class<?>, Class<?>> primitiveTypeToWrapperMap = new IdentityHashMap<Class<?>, Class<?>>(8);
 
 	/**
-	 * Map with primitive type name as key and corresponding primitive
-	 * type as value, for example: "int" -> "int.class".
+	 * 原始类型名称 ==> 原始类型class的映射
+     * for example: "int" -> "int.class".
 	 */
 	private static final Map<String, Class<?>> primitiveTypeNameMap = new HashMap<String, Class<?>>(32);
 
 	/**
-	 * Map with common "java.lang" class name as key and corresponding Class as value.
-	 * Primarily for efficient deserialization of remote invocations.
+	 * java.lang包下的常用的class映射缓存，有利于提高效率
+     * for example: boolean =》 Boolean.class  number => Number.class
 	 */
 	private static final Map<String, Class<?>> commonClassCache = new HashMap<String, Class<?>>(32);
 
@@ -111,13 +111,14 @@ public abstract class ClassUtils {
 			primitiveTypeToWrapperMap.put(entry.getValue(), entry.getKey());
 			registerCommonClasses(entry.getKey());
 		}
-
+        //原始类型和原始类型的数组类型
 		Set<Class<?>> primitiveTypes = new HashSet<Class<?>>(32);
 		primitiveTypes.addAll(primitiveWrapperTypeMap.values());
 		primitiveTypes.addAll(Arrays.asList(new Class<?>[] {
 				boolean[].class, byte[].class, char[].class, double[].class,
 				float[].class, int[].class, long[].class, short[].class}));
 		primitiveTypes.add(void.class);
+		//构建primitiveTypeNameMap
 		for (Class<?> primitiveType : primitiveTypes) {
 			primitiveTypeNameMap.put(primitiveType.getName(), primitiveType);
 		}
@@ -157,16 +158,17 @@ public abstract class ClassUtils {
 	public static ClassLoader getDefaultClassLoader() {
 		ClassLoader cl = null;
 		try {
+			//优先使用线程上下文类加载器
 			cl = Thread.currentThread().getContextClassLoader();
 		}
 		catch (Throwable ex) {
 			// Cannot access thread context ClassLoader - falling back...
 		}
 		if (cl == null) {
-			// No thread context class loader -> use class loader of this class.
+			// 没有线程上下文类加载器，则使用ClassUtils类的类加载器，如果返回null则说明是bootstrap ClassLoader
 			cl = ClassUtils.class.getClassLoader();
 			if (cl == null) {
-				// getClassLoader() returning null indicates the bootstrap ClassLoader
+				// 如果ClassUtils.class.getClassLoader()返回了null，使用ApplicationClassLoader
 				try {
 					cl = ClassLoader.getSystemClassLoader();
 				}
@@ -212,11 +214,13 @@ public abstract class ClassUtils {
 	 */
 	public static Class<?> forName(String name, ClassLoader classLoader) throws ClassNotFoundException, LinkageError {
 		Assert.notNull(name, "Name must not be null");
-
+        //先尝试解析name为原始类型
 		Class<?> clazz = resolvePrimitiveClassName(name);
 		if (clazz == null) {
+		    // 走到这里说明name不是原始类型，尝试从commonClassCache中获取
 			clazz = commonClassCache.get(name);
 		}
+		//如果clazz != null则返回clazz
 		if (clazz != null) {
 			return clazz;
 		}
@@ -241,7 +245,7 @@ public abstract class ClassUtils {
 			Class<?> elementClass = forName(elementName, classLoader);
 			return Array.newInstance(elementClass, 0).getClass();
 		}
-
+        //name对应的class不是原始类型，也没有命中commonClassCache，则使用类加载器进行加载
 		ClassLoader clToUse = classLoader;
 		if (clToUse == null) {
 			clToUse = getDefaultClassLoader();
@@ -250,6 +254,7 @@ public abstract class ClassUtils {
 			return (clToUse != null ? clToUse.loadClass(name) : Class.forName(name));
 		}
 		catch (ClassNotFoundException ex) {
+		    //可能要加载的是内部类
 			int lastDotIndex = name.lastIndexOf(PACKAGE_SEPARATOR);
 			if (lastDotIndex != -1) {
 				String innerClassName =
@@ -301,13 +306,14 @@ public abstract class ClassUtils {
 	 * @param name the name of the potentially primitive class
 	 * @return the primitive class, or {@code null} if the name does not denote
 	 * a primitive class or primitive array class
+     *
+     * 解析出name对应的简单类型Class
 	 */
 	public static Class<?> resolvePrimitiveClassName(String name) {
 		Class<?> result = null;
-		// Most class names will be quite long, considering that they
-		// SHOULD sit in a package, so a length check is worthwhile.
+        // 因为大多数的类名长度都大于8，所以先判断一下类名长度比较合理。(原始类型的名字长度都不超过8)
 		if (name != null && name.length() <= 8) {
-			// Could be a primitive - likely.
+			// 尝试从缓存中获取，如果获取不到则说明name不是原始类型
 			result = primitiveTypeNameMap.get(name);
 		}
 		return result;

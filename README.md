@@ -1,5 +1,5 @@
 <h1>个人学习系列-spring-framework源码</h1>
-<h3>请切换4.2X分支</h3>
+<h3>请切换4.2x分支</h3>
 <h3>springMVC</h3>
 <p>1.DispatcherServlet初始化过程</p>
 <p>2.springMVC配置解析-AnnotationDrivenBeanDefinitionParser

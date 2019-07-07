@@ -1,0 +1,1 @@
+ApplicationContextInitializer：在refresh前调用initialize方法

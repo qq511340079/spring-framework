@@ -511,7 +511,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	public void refresh() throws BeansException, IllegalStateException {
 		//加锁，确保同一时刻只有一个线程对容器进行启动或者关闭
 		synchronized (this.startupShutdownMonitor) {
-			// Prepare this context for refreshing.
+			// 刷新容器前的准备操作
 			prepareRefresh();
 
 			// 获取刷新后的BeanFactory(容器)，BeanFactory才是真正管理bean的容器啊
@@ -579,7 +579,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void prepareRefresh() {
 		this.startupDate = System.currentTimeMillis();
+		//设置容器是否关闭标识为false
 		this.closed.set(false);
+		//设置容器是否激活标识为true
 		this.active.set(true);
 
 		if (logger.isInfoEnabled()) {

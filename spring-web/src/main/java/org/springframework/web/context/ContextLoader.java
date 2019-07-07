@@ -425,7 +425,7 @@ public class ContextLoader {
 	protected void configureAndRefreshWebApplicationContext(ConfigurableWebApplicationContext wac, ServletContext sc) {
 		// 相等说明容器的id还是初始值，需要设置一个更有意义的id
 		if (ObjectUtils.identityToString(wac).equals(wac.getId())) {
-			// 尝试从配置中获取
+			// 尝试从contextId配置中获取
 			String idParam = sc.getInitParameter(CONTEXT_ID_PARAM);
 			if (idParam != null) {
 				wac.setId(idParam);
@@ -475,12 +475,15 @@ public class ContextLoader {
 	 * @see ApplicationContextInitializer#initialize(ConfigurableApplicationContext)
 	 */
 	protected void customizeContext(ServletContext sc, ConfigurableWebApplicationContext wac) {
+		//获取<context-param>配置的ApplicationContextInitializer
 		List<Class<ApplicationContextInitializer<ConfigurableApplicationContext>>> initializerClasses =
 				determineContextInitializerClasses(sc);
 
 		for (Class<ApplicationContextInitializer<ConfigurableApplicationContext>> initializerClass : initializerClasses) {
+			//获取ApplicationContextInitializer实现类的泛型
 			Class<?> initializerContextClass =
 					GenericTypeResolver.resolveTypeArgument(initializerClass, ApplicationContextInitializer.class);
+			//判断wac是否是ApplicationContextInitializer实现类的泛型的类型
 			if (initializerContextClass != null && !initializerContextClass.isInstance(wac)) {
 				throw new ApplicationContextException(String.format(
 						"Could not apply context initializer [%s] since its generic parameter [%s] " +
@@ -488,10 +491,12 @@ public class ContextLoader {
 						"context loader: [%s]", initializerClass.getName(), initializerContextClass.getName(),
 						wac.getClass().getName()));
 			}
+			//创建initializerClass实例然后添加到contextInitializers集合
 			this.contextInitializers.add(BeanUtils.instantiateClass(initializerClass));
 		}
-
+		//contextInitializers排序
 		AnnotationAwareOrderComparator.sort(this.contextInitializers);
+		//遍历执行ApplicationContextInitializer的initialize方法
 		for (ApplicationContextInitializer<ConfigurableApplicationContext> initializer : this.contextInitializers) {
 			initializer.initialize(wac);
 		}

@@ -975,6 +975,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	@Override
 	public void destroySingleton(String beanName) {
+	    //调用父类的destroySingleton方法
 		super.destroySingleton(beanName);
 		this.manualSingletonNames.remove(beanName);
 		clearByTypeCache();
@@ -982,6 +983,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	@Override
 	public void destroySingletons() {
+		//调用父类的destroySingletons方法
 		super.destroySingletons();
 		this.manualSingletonNames.clear();
 		clearByTypeCache();

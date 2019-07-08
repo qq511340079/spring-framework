@@ -589,10 +589,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		// Initialize any placeholder property sources in the context environment
+		//初始化PropertySources(系统属性信息，可以用${XX}获取？)，比如是系统变量，运行环境信息、contextInitParam等
 		initPropertySources();
 
 		// Validate that all properties marked as required are resolvable
 		// see ConfigurablePropertyResolver#setRequiredProperties
+		//校验必须的属性
 		getEnvironment().validateRequiredProperties();
 
 		// Allow for the collection of early ApplicationEvents,
@@ -1015,6 +1017,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see org.springframework.beans.factory.config.ConfigurableBeanFactory#destroySingletons()
 	 */
 	protected void destroyBeans() {
+	    //销毁BeanFactory中的所有单例bean
 		getBeanFactory().destroySingletons();
 	}
 

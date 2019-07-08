@@ -108,7 +108,9 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	/** Flag that indicates whether we're currently within destroySingletons */
 	private boolean singletonsCurrentlyInDestruction = false;
 
-	/** Disposable bean instances: bean name --> disposable instance */
+	/** Disposable bean instances: bean name --> disposable instance
+     * 实现了DisposableBean接口的bean name --> bean实例的映射
+     * */
 	private final Map<String, Object> disposableBeans = new LinkedHashMap<String, Object>();
 
 	/** Map between containing bean names: bean name --> Set of bean names that the bean contains */
@@ -512,13 +514,15 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 			logger.debug("Destroying singletons in " + this);
 		}
 		synchronized (this.singletonObjects) {
-			this.singletonsCurrentlyInDestruction = true;
+            //将singletonsCurrentlyInDestruction标识设置为true，表示正在销毁单例bean
+            this.singletonsCurrentlyInDestruction = true;
 		}
-
+        //实现了DisposableBean接口的bean name
 		String[] disposableBeanNames;
 		synchronized (this.disposableBeans) {
 			disposableBeanNames = StringUtils.toStringArray(this.disposableBeans.keySet());
 		}
+		//遍历disposableBeanNames，调用destroySingleton方法
 		for (int i = disposableBeanNames.length - 1; i >= 0; i--) {
 			destroySingleton(disposableBeanNames[i]);
 		}
@@ -543,14 +547,16 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * @see #destroyBean
 	 */
 	public void destroySingleton(String beanName) {
-		// Remove a registered singleton of the given name, if any.
+		// 从相关集合中删除指定beanName对应的单例
 		removeSingleton(beanName);
 
 		// Destroy the corresponding DisposableBean instance.
 		DisposableBean disposableBean;
 		synchronized (this.disposableBeans) {
+		    //将beanName对应的bean从disposableBeans中移除
 			disposableBean = (DisposableBean) this.disposableBeans.remove(beanName);
 		}
+		//销毁依赖beanName实例的bean、调用DisposableBean的destroy方法、销毁beanName实例包含的bean
 		destroyBean(beanName, disposableBean);
 	}
 

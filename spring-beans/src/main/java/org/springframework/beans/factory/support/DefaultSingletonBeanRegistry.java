@@ -547,7 +547,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * @see #destroyBean
 	 */
 	public void destroySingleton(String beanName) {
-		// 从相关集合中删除指定beanName对应的单例
+		// 从相关集合中删除指定beanName实例
 		removeSingleton(beanName);
 
 		// Destroy the corresponding DisposableBean instance.
@@ -568,19 +568,22 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 */
 	protected void destroyBean(String beanName, DisposableBean bean) {
 		// Trigger destruction of dependent beans first...
+		//获取依赖beanName实例的bean名称
 		Set<String> dependencies = this.dependentBeanMap.remove(beanName);
 		if (dependencies != null) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Retrieved dependent beans for bean '" + beanName + "': " + dependencies);
 			}
+			//销毁所有依赖beanName实例的bean
 			for (String dependentBeanName : dependencies) {
 				destroySingleton(dependentBeanName);
 			}
 		}
 
-		// Actually destroy the bean now...
+		//如果bean != null说明beanName实例实现了DisposableBean接口
 		if (bean != null) {
 			try {
+				//调用bean的destroy方法
 				bean.destroy();
 			}
 			catch (Throwable ex) {
@@ -589,6 +592,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		}
 
 		// Trigger destruction of contained beans...
+        //获取包含beanName实例的bean的名称？ todo
 		Set<String> containedBeans = this.containedBeanMap.remove(beanName);
 		if (containedBeans != null) {
 			for (String containedBeanName : containedBeans) {

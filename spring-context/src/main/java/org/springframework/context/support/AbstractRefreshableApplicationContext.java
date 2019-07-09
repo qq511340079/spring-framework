@@ -129,8 +129,9 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 		try {
 			//创建新的容器实例，BeanFactory就是spring内部管理bean的容器
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
-			//设置容器的id
+			//设置容器的id = applicationContext的id
 			beanFactory.setSerializationId(getId());
+			//子类可以重写该方法自定义BeanFactory处理逻辑
 			customizeBeanFactory(beanFactory);
 			//解析配置文件，将配置信息转为BeanDefinition对象存入容器中
 			loadBeanDefinitions(beanFactory);
@@ -223,9 +224,11 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * @see DefaultListableBeanFactory#setAllowEagerClassLoading
 	 */
 	protected void customizeBeanFactory(DefaultListableBeanFactory beanFactory) {
+		//BeanDefinition是否允许覆盖
 		if (this.allowBeanDefinitionOverriding != null) {
 			beanFactory.setAllowBeanDefinitionOverriding(this.allowBeanDefinitionOverriding);
 		}
+		//是否允许循环引用
 		if (this.allowCircularReferences != null) {
 			beanFactory.setAllowCircularReferences(this.allowCircularReferences);
 		}

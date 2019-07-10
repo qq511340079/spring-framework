@@ -22,6 +22,9 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 
 /**
+ *
+ * BeanDefinitionParser接口的基础实现类，用来解析标签并且定义一个BeanDefinition
+ * 很不错的基础类，简化了原本实现BeanDefinitionParser解析标签的操作
  * Base class for those {@link BeanDefinitionParser} implementations that
  * need to parse and define just a <i>single</i> {@code BeanDefinition}.
  *
@@ -58,6 +61,7 @@ public abstract class AbstractSingleBeanDefinitionParser extends AbstractBeanDef
 	 */
 	@Override
 	protected final AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
+	    //很棒，通过BeanDefinitionBuilder简化了构建BeanDefinition的操作
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition();
 		String parentName = getParentName(element);
 		if (parentName != null) {

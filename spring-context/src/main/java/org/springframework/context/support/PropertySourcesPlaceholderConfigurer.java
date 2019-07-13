@@ -59,6 +59,15 @@ import org.springframework.util.StringValueResolver;
  * @see org.springframework.core.env.ConfigurableEnvironment
  * @see org.springframework.beans.factory.config.PlaceholderConfigurerSupport
  * @see org.springframework.beans.factory.config.PropertyPlaceholderConfigurer
+ *
+ * PropertySourcesPlaceholderConfigurer执行流程：
+ * 1.通过PropertyPlaceHolderBeanDefinitionParser解析<context:property-placeholder/>，构建PropertySourcesPlaceholderConfigurer的BeanDefinition
+ * 2.通过实现EnvironmentAware接口的回调方法setEnvironment，获取系统的运行环境相关属性
+ * 3.通过BeanFactoryPostProcessor的postProcessBeanFactory回调方法完成了以下操作
+ *   3.1 初始化propertySources变量，将系统的运行环境相关属性和配置.properties文件及配置的java.util.Properties实例添加到propertySources变量中
+ *   3.2 创建PropertySourcesPropertyResolver实例，执行processProperties方法
+ *   3.3 创建StringValueResolver实例，执行doProcessProperties方法，解析占位符替换为实际value
+ *
  */
 public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerSupport implements EnvironmentAware {
 
@@ -122,8 +131,11 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 	 */
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+		//如果propertySources == null，则先初始化propertySources
 		if (this.propertySources == null) {
+			//创建MutablePropertySources实例，顾名思义其可以持有多个PropertySource
 			this.propertySources = new MutablePropertySources();
+			//如果environment != null，则将当前系统的运行环境相关属性也封装到PropertySource然后添加到propertySources的末尾。这也是为什么可以在spring中直接获取到运行环境相关属性的原因
 			if (this.environment != null) {
 				this.propertySources.addLast(
 					new PropertySource<Environment>(ENVIRONMENT_PROPERTIES_PROPERTY_SOURCE_NAME, this.environment) {
@@ -135,8 +147,11 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 				);
 			}
 			try {
+			    //1.mergeProperties方法会加载.properties配置文件和配置的java.util.Properties实例
+                //2.然后将mergeProperties方法的结果封装到PropertiesPropertySource
 				PropertySource<?> localPropertySource =
 						new PropertiesPropertySource(LOCAL_PROPERTIES_PROPERTY_SOURCE_NAME, mergeProperties());
+				//根据localOverride配置确定是否应该覆盖系统运行环境相关属性，即添加到之前还是之后
 				if (this.localOverride) {
 					this.propertySources.addFirst(localPropertySource);
 				}
@@ -148,7 +163,7 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 				throw new BeanInitializationException("Could not load properties", ex);
 			}
 		}
-
+        //创建PropertySourcesPropertyResolver实例，解析bean字段的占位符，将其替换为实际value
 		processProperties(beanFactory, new PropertySourcesPropertyResolver(this.propertySources));
 		this.appliedPropertySources = this.propertySources;
 	}
@@ -159,17 +174,17 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 	 */
 	protected void processProperties(ConfigurableListableBeanFactory beanFactoryToProcess,
 			final ConfigurablePropertyResolver propertyResolver) throws BeansException {
-
+        //设置propertyResolver的placeholder前缀、placeholder后缀、valueSeparator
 		propertyResolver.setPlaceholderPrefix(this.placeholderPrefix);
 		propertyResolver.setPlaceholderSuffix(this.placeholderSuffix);
 		propertyResolver.setValueSeparator(this.valueSeparator);
-
+        //创建StringValueResolver实现类，用来解析placeholder
 		StringValueResolver valueResolver = new StringValueResolver() {
 			@Override
 			public String resolveStringValue(String strVal) {
 				String resolved = ignoreUnresolvablePlaceholders ?
-						propertyResolver.resolvePlaceholders(strVal) :
-						propertyResolver.resolveRequiredPlaceholders(strVal);
+						propertyResolver.resolvePlaceholders(strVal) ://忽略无法解析的placeholder
+						propertyResolver.resolveRequiredPlaceholders(strVal);//对于无法解析的placeholder抛出异常
 				return (resolved.equals(nullValue) ? null : resolved);
 			}
 		};

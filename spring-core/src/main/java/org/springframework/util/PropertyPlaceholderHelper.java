@@ -137,40 +137,51 @@ public class PropertyPlaceholderHelper {
 			if (endIndex != -1) {
 				String placeholder = result.substring(startIndex + this.placeholderPrefix.length(), endIndex);
 				String originalPlaceholder = placeholder;
+				//如果是false则说明originalPlaceholder已经存在于visitedPlaceholders集合中，说明出现了循环引用
 				if (!visitedPlaceholders.add(originalPlaceholder)) {
 					throw new IllegalArgumentException(
 							"Circular placeholder reference '" + originalPlaceholder + "' in property definitions");
 				}
 				// Recursive invocation, parsing placeholders contained in the placeholder key.
+                //递归执行parseStringValue方法，解析占位符中嵌套占位符的情况
 				placeholder = parseStringValue(placeholder, placeholderResolver, visitedPlaceholders);
-				// Now obtain the value for the fully resolved key...
+                //解析placeholder对应的真实value
 				String propVal = placeholderResolver.resolvePlaceholder(placeholder);
+				//没有找到placeholder对应的真实value，且配置了valueSeparator，则表示支持${key:default}这样的表达式，尝试将placeholder分隔开后再次解析
 				if (propVal == null && this.valueSeparator != null) {
+				    //寻找valueSeparator的索引位置
 					int separatorIndex = placeholder.indexOf(this.valueSeparator);
+					//separatorIndex != -1 说明placeholder是key:default格式，尝试再次解析
 					if (separatorIndex != -1) {
+					    //valueSeparator左侧是实际的placeholder
 						String actualPlaceholder = placeholder.substring(0, separatorIndex);
+						//valueSeparator右侧是默认值
 						String defaultValue = placeholder.substring(separatorIndex + this.valueSeparator.length());
+						//解析actualPlaceholder对应的真实value
 						propVal = placeholderResolver.resolvePlaceholder(actualPlaceholder);
+						//如果没有解析到的话则使用默认值
 						if (propVal == null) {
 							propVal = defaultValue;
 						}
 					}
 				}
+				//如果解析到了value
 				if (propVal != null) {
 					// Recursive invocation, parsing placeholders contained in the
 					// previously resolved placeholder value.
 					propVal = parseStringValue(propVal, placeholderResolver, visitedPlaceholders);
+					//将${key}表达式替换为真实值
 					result.replace(startIndex, endIndex + this.placeholderSuffix.length(), propVal);
 					if (logger.isTraceEnabled()) {
 						logger.trace("Resolved placeholder '" + placeholder + "'");
 					}
 					startIndex = result.indexOf(this.placeholderPrefix, startIndex + propVal.length());
 				}
-				else if (this.ignoreUnresolvablePlaceholders) {
+				else if (this.ignoreUnresolvablePlaceholders) {//是否忽略不能解析的placeholder
 					// Proceed with unprocessed value.
 					startIndex = result.indexOf(this.placeholderPrefix, endIndex + this.placeholderSuffix.length());
 				}
-				else {
+				else {//没有解析到value，且不忽略不能解析的placeholder则抛出异常
 					throw new IllegalArgumentException("Could not resolve placeholder '" +
 							placeholder + "'" + " in string value \"" + strVal + "\"");
 				}

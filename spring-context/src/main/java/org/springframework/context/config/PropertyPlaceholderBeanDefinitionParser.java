@@ -40,16 +40,16 @@ class PropertyPlaceholderBeanDefinitionParser extends AbstractPropertyLoadingBea
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		// As of Spring 3.1, the default value of system-properties-mode has changed from
-		// 'FALLBACK' to 'ENVIRONMENT'. This latter value indicates that resolution of
-		// placeholders against system properties is a function of the Environment and
-		// its current set of PropertySources.
+		// 从Spring 3.1开始，system-properties-mode的默认值已从'FALLBACK'更改为'ENVIRONMENT'。 后一个值表示占位符对系统属性的解析是Environment及其当前PropertySource集的函数。
+		//system-properties-mode属性默认值是ENVIRONMENT
 		if (SYSTEM_PROPERTIES_MODE_DEFAULT.equals(element.getAttribute(SYSTEM_PROPERTIES_MODE_ATTRIBUTE))) {
+			//需要系统运行环境相关属性
 			return PropertySourcesPlaceholderConfigurer.class;
 		}
 
 		// The user has explicitly specified a value for system-properties-mode: revert to
 		// PropertyPlaceholderConfigurer to ensure backward compatibility with 3.0 and earlier.
+		//不需要系统运行环境相关属性
 		return PropertyPlaceholderConfigurer.class;
 	}
 	/**

@@ -61,7 +61,16 @@ import org.springframework.util.StringValueResolver;
  * @see PlaceholderConfigurerSupport
  * @see PropertyOverrideConfigurer
  * @see org.springframework.context.support.PropertySourcesPlaceholderConfigurer
+ *
+ *
+ * PropertyPlaceholderConfigurer执行流程：
+ * 1.通过PropertyPlaceHolderBeanDefinitionParser解析<context:property-placeholder/>，构建PropertyPlaceholderConfigurer的BeanDefinition
+ * 2.执行基类的postProcessBeanFactory方法
+ * postProcessBeanFactory方法主要完成了如下操作
+ * 2.1 调用mergeProperties方法，完成了.properties文件与java.util.Properties实例的加载
+ * 2.2 调用processProperties方法，使用PlaceholderResolvingStringValueResolver和BeanDefinitionVisitor解析容器中的bean字段上的占位符替换为实际的value
  */
+
 public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport {
 
 	/** Never check system properties. */

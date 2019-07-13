@@ -140,19 +140,21 @@ public abstract class PropertiesLoaderSupport {
 	protected Properties mergeProperties() throws IOException {
 		Properties result = new Properties();
 
+		//控制locations配置文件和localProperties实例的加载顺序，对于重复的配置，后加载的会覆盖先加载的
 		if (this.localOverride) {
-			// Load properties from file upfront, to let local properties override.
+		    //先加载.properties配置文件，以便java.util.Properties实例可以覆盖
 			loadProperties(result);
 		}
-
+        //如果配置了localProperties(java.util.Properties实例)，则进行加载
 		if (this.localProperties != null) {
 			for (Properties localProp : this.localProperties) {
+			    //localProp合并到result，同时会覆盖result中相同的配置信息
 				CollectionUtils.mergePropertiesIntoMap(localProp, result);
 			}
 		}
 
 		if (!this.localOverride) {
-			// Load properties from file afterwards, to let those properties override.
+			//后加载.properties配置文件，以便覆盖java.util.Properties实例
 			loadProperties(result);
 		}
 

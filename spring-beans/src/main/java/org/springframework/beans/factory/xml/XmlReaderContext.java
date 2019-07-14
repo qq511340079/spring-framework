@@ -40,11 +40,14 @@ import org.springframework.core.io.ResourceLoader;
  * @author Rob Harrop
  * @author Juergen Hoeller
  * @since 2.0
+ *
+ * Xml配置文件读取器的上下文
  */
 public class XmlReaderContext extends ReaderContext {
 
+	//将Xml配置转换为BeanDefinition的读取器
 	private final XmlBeanDefinitionReader reader;
-
+	//寻找Xml配置中标签的namespace对应的NamespaceHandler的解析器
 	private final NamespaceHandlerResolver namespaceHandlerResolver;
 
 

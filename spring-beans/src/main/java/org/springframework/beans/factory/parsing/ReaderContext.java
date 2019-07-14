@@ -27,7 +27,7 @@ import org.springframework.core.io.Resource;
  * @since 2.0
  */
 public class ReaderContext {
-
+	//读取器读取的资源
 	private final Resource resource;
 
 	private final ProblemReporter problemReporter;

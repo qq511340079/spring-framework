@@ -38,6 +38,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
  */
 public final class ParserContext {
 
+	//Xml读取器上下文
 	private final XmlReaderContext readerContext;
 
 	private final BeanDefinitionParserDelegate delegate;

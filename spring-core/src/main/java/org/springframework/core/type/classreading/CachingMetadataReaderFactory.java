@@ -93,13 +93,18 @@ public class CachingMetadataReaderFactory extends SimpleMetadataReaderFactory {
 
 	@Override
 	public MetadataReader getMetadataReader(Resource resource) throws IOException {
+		//cacheLimit <=0表示不使用缓存
 		if (getCacheLimit() <= 0) {
 			return super.getMetadataReader(resource);
 		}
 		synchronized (this.metadataReaderCache) {
+		    //尝试先从缓存中获取MetadataReader
 			MetadataReader metadataReader = this.metadataReaderCache.get(resource);
+			//如果缓存中没有获取MetadataReader到
 			if (metadataReader == null) {
+                //调用父类的getMetadataReader方法获取MetadataReader
 				metadataReader = super.getMetadataReader(resource);
+				//将MetadataReader放入缓存
 				this.metadataReaderCache.put(resource, metadataReader);
 			}
 			return metadataReader;

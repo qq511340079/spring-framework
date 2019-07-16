@@ -514,7 +514,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			// 刷新容器前的准备操作
 			prepareRefresh();
 
-			// 获取刷新后的BeanFactory(容器)，BeanFactory才是真正管理bean的容器啊
+			// 获取刷新后的BeanFactory(容器)，obtainFreshBeanFactory方法完成了如下操作
+			// 1.关闭已经存在的BeanFactory
+			// 2.创建新的BeanFactory
+			// 3.解析配置文件转换为BeanDefinition对象存入容器中
+			// 4.将新创建的DefaultListableBeanFactory赋值给beanFactory变量
+            // 5.返回新创建的BeanFactory
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
@@ -618,8 +623,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see #getBeanFactory()
 	 */
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
-		//刷新BeanFactory(容器)，加载BeanDefinition
+		//刷新BeanFactory(容器)，刷新的意思就是1.销毁BeanFactory中的bean，2.关闭原有BeanFactory，3.创建新的BeanFactory，4.加载xml配置文件将配置转换成BeanDefinition对象然后添加到BeanFactory
 		refreshBeanFactory();
+		//获取refreshBeanFactory方法中新创建的BeanFactory
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
 		if (logger.isDebugEnabled()) {
 			logger.debug("Bean factory for " + getDisplayName() + ": " + beanFactory);

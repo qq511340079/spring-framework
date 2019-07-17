@@ -55,6 +55,9 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  * @author Juergen Hoeller
  * @author Chris Beams
  * @since 2.0
+ *
+ * PropertyEditorRegistrar接口的实现类
+ * 实现了PropertyEditorRegistry方法，将Resource相关的PropertyEditor注册到入参PropertyEditorRegistry中
  */
 public class ResourceEditorRegistrar implements PropertyEditorRegistrar {
 

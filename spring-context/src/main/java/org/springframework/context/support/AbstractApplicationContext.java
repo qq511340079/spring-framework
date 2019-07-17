@@ -505,7 +505,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 	/**
 	 * spring容器启动核心方法
-	 * 模板方法设计模式
+	 * AbstractApplicationContext的refresh使用了模板方法设计模式，定义了刷新容器的步骤框架
 	 * */
 	@Override
 	public void refresh() throws BeansException, IllegalStateException {
@@ -514,7 +514,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			// 刷新容器前的准备操作
 			prepareRefresh();
 
-			// 获取刷新后的BeanFactory(容器)，obtainFreshBeanFactory方法完成了如下操作
+			//  获取刷新后的BeanFactory(容器)，obtainFreshBeanFactory方法完成了如下操作：
 			// 1.关闭已经存在的BeanFactory
 			// 2.创建新的BeanFactory
 			// 3.解析配置文件转换为BeanDefinition对象存入容器中
@@ -523,6 +523,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
+            //预先处理一下刚创建的beanFactory
 			prepareBeanFactory(beanFactory);
 
 			try {
@@ -623,7 +624,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see #getBeanFactory()
 	 */
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
-		//刷新BeanFactory(容器)，刷新的意思就是1.销毁BeanFactory中的bean，2.关闭原有BeanFactory，3.创建新的BeanFactory，4.加载xml配置文件将配置转换成BeanDefinition对象然后添加到BeanFactory
+		// 刷新BeanFactory(容器)，刷新的意思就是1.销毁BeanFactory中的bean，2.关闭原有BeanFactory，3.创建新的BeanFactory，4.加载xml配置文件将配置转换成BeanDefinition对象然后添加到BeanFactory
+        // AbstractRefreshableApplicationContext类实现了该方法，通过类名就可以看出来类的用途
 		refreshBeanFactory();
 		//获取refreshBeanFactory方法中新创建的BeanFactory
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
@@ -640,11 +642,15 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 		// Tell the internal bean factory to use the context's class loader etc.
+		//设置BeanFactory使用的ClassLoader
 		beanFactory.setBeanClassLoader(getClassLoader());
+		//设置spel表达式解析器
 		beanFactory.setBeanExpressionResolver(new StandardBeanExpressionResolver(beanFactory.getBeanClassLoader()));
+		//设置ResourceEditorRegistrar(用来注册Resource相关的PropertyEdit到PropertyEditorRegistry)
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
 
 		// Configure the bean factory with context callbacks.
+        //添加ApplicationContextAwareProcessor(BeanPostProcessor)
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
 		beanFactory.ignoreDependencyInterface(EnvironmentAware.class);
 		beanFactory.ignoreDependencyInterface(EmbeddedValueResolverAware.class);

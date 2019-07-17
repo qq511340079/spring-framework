@@ -81,6 +81,7 @@ public class DefaultResourceLoader implements ResourceLoader {
 	 */
 	@Override
 	public ClassLoader getClassLoader() {
+		//如果classLoader!=null则返回classLoder(默认值是通过ClassUtils.getDefaultClassLoader方法获取的)，否则调用ClassUtils.getDefaultClassLoader方法获取classLoder()
 		return (this.classLoader != null ? this.classLoader : ClassUtils.getDefaultClassLoader());
 	}
 

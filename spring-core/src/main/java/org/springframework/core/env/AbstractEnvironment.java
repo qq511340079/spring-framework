@@ -119,6 +119,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 * @see #customizePropertySources(MutablePropertySources)
 	 */
 	public AbstractEnvironment() {
+		//调用customizePropertySources方法，向propertySources添加自定义的PropertySource
 		customizePropertySources(this.propertySources);
 		if (this.logger.isDebugEnabled()) {
 			this.logger.debug(String.format(
@@ -201,6 +202,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 * @see MutablePropertySources
 	 * @see PropertySourcesPropertyResolver
 	 * @see org.springframework.context.ApplicationContextInitializer
+     * 子类实现此方法向propertySources添加自定义的PropertySource
 	 */
 	protected void customizePropertySources(MutablePropertySources propertySources) {
 	}

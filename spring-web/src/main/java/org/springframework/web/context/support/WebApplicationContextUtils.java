@@ -176,6 +176,7 @@ public abstract class WebApplicationContextUtils {
 	 * @param sc the ServletContext that we're running within
 	 */
 	public static void registerWebApplicationScopes(ConfigurableListableBeanFactory beanFactory, ServletContext sc) {
+		//注册Web应用环境下spring支持的scope
 		beanFactory.registerScope(WebApplicationContext.SCOPE_REQUEST, new RequestScope());
 		beanFactory.registerScope(WebApplicationContext.SCOPE_SESSION, new SessionScope(false));
 		beanFactory.registerScope(WebApplicationContext.SCOPE_GLOBAL_SESSION, new SessionScope(true));
@@ -185,7 +186,8 @@ public abstract class WebApplicationContextUtils {
 			// Register as ServletContext attribute, for ContextCleanupListener to detect it.
 			sc.setAttribute(ServletContextScope.class.getName(), appScope);
 		}
-
+		// 向beanFactory注册依赖对应的bean
+        // 还可以在Bean中注入当前请求的ServletRequest、ServletResponse、HttpSession等对象
 		beanFactory.registerResolvableDependency(ServletRequest.class, new RequestObjectFactory());
 		beanFactory.registerResolvableDependency(ServletResponse.class, new ResponseObjectFactory());
 		beanFactory.registerResolvableDependency(HttpSession.class, new SessionObjectFactory());
@@ -215,16 +217,21 @@ public abstract class WebApplicationContextUtils {
 	public static void registerEnvironmentBeans(
 			ConfigurableListableBeanFactory bf, ServletContext servletContext, ServletConfig servletConfig) {
 
+	    //如果servletContext!=null && 容器中没有servletContext
 		if (servletContext != null && !bf.containsBean(WebApplicationContext.SERVLET_CONTEXT_BEAN_NAME)) {
+            //向容器中注册bean, servletContext --> servletContext
 			bf.registerSingleton(WebApplicationContext.SERVLET_CONTEXT_BEAN_NAME, servletContext);
 		}
 
 		if (servletConfig != null && !bf.containsBean(ConfigurableWebApplicationContext.SERVLET_CONFIG_BEAN_NAME)) {
+		    //向容器中注册bean, servletConfig --> servletConfig
 			bf.registerSingleton(ConfigurableWebApplicationContext.SERVLET_CONFIG_BEAN_NAME, servletConfig);
 		}
 
 		if (!bf.containsBean(WebApplicationContext.CONTEXT_PARAMETERS_BEAN_NAME)) {
+		    // 保存了servletContext.getInitParameter方法和servletConfig.getInitParameter方法获取到的数据
 			Map<String, String> parameterMap = new HashMap<String, String>();
+			//如果servletContext!=null，则将servletContext.getInitParameter方法获取到的参数放入到parameterMap
 			if (servletContext != null) {
 				Enumeration<?> paramNameEnum = servletContext.getInitParameterNames();
 				while (paramNameEnum.hasMoreElements()) {
@@ -232,6 +239,7 @@ public abstract class WebApplicationContextUtils {
 					parameterMap.put(paramName, servletContext.getInitParameter(paramName));
 				}
 			}
+			//如果servletConfig!=null，则将servletConfig.getInitParameter方法获取到的参数放入到parameterMap
 			if (servletConfig != null) {
 				Enumeration<?> paramNameEnum = servletConfig.getInitParameterNames();
 				while (paramNameEnum.hasMoreElements()) {
@@ -239,12 +247,15 @@ public abstract class WebApplicationContextUtils {
 					parameterMap.put(paramName, servletConfig.getInitParameter(paramName));
 				}
 			}
+			//向容器注册bean，contextParameters --> parameterMap
 			bf.registerSingleton(WebApplicationContext.CONTEXT_PARAMETERS_BEAN_NAME,
 					Collections.unmodifiableMap(parameterMap));
 		}
 
 		if (!bf.containsBean(WebApplicationContext.CONTEXT_ATTRIBUTES_BEAN_NAME)) {
+		    // 保存servletContext.getAttributeNames获取到的数据
 			Map<String, Object> attributeMap = new HashMap<String, Object>();
+			// 如果servletContext!=null，将servletContext.getAttribute方法获取到的数据放入到attributeMap
 			if (servletContext != null) {
 				Enumeration<?> attrNameEnum = servletContext.getAttributeNames();
 				while (attrNameEnum.hasMoreElements()) {
@@ -252,6 +263,7 @@ public abstract class WebApplicationContextUtils {
 					attributeMap.put(attrName, servletContext.getAttribute(attrName));
 				}
 			}
+			//向容器注册bean，contextAttributes --> attributeMap
 			bf.registerSingleton(WebApplicationContext.CONTEXT_ATTRIBUTES_BEAN_NAME,
 					Collections.unmodifiableMap(attributeMap));
 		}
@@ -287,13 +299,14 @@ public abstract class WebApplicationContextUtils {
 	 */
 	public static void initServletPropertySources(
 			MutablePropertySources propertySources, ServletContext servletContext, ServletConfig servletConfig) {
-
+		//将StubPropertySource替换为实际的ServletContextPropertySource
 		Assert.notNull(propertySources, "'propertySources' must not be null");
 		if (servletContext != null && propertySources.contains(StandardServletEnvironment.SERVLET_CONTEXT_PROPERTY_SOURCE_NAME) &&
 				propertySources.get(StandardServletEnvironment.SERVLET_CONTEXT_PROPERTY_SOURCE_NAME) instanceof StubPropertySource) {
 			propertySources.replace(StandardServletEnvironment.SERVLET_CONTEXT_PROPERTY_SOURCE_NAME,
 					new ServletContextPropertySource(StandardServletEnvironment.SERVLET_CONTEXT_PROPERTY_SOURCE_NAME, servletContext));
 		}
+		//将StubPropertySource替换为实际的ServletConfigPropertySource
 		if (servletConfig != null && propertySources.contains(StandardServletEnvironment.SERVLET_CONFIG_PROPERTY_SOURCE_NAME) &&
 				propertySources.get(StandardServletEnvironment.SERVLET_CONFIG_PROPERTY_SOURCE_NAME) instanceof StubPropertySource) {
 			propertySources.replace(StandardServletEnvironment.SERVLET_CONFIG_PROPERTY_SOURCE_NAME,

@@ -154,15 +154,20 @@ public abstract class AbstractRefreshableWebApplicationContext extends AbstractR
 
 	/**
 	 * Register request/session scopes, a {@link ServletContextAwareProcessor}, etc.
+     * 1.向beanFactory注册ServletContextAwareProcessor
+     * 2.向beanFactory注册web环境下spring支持的scope
+     * 3.向beanFactory注册web容器的一些bean(ServletContext、ServletConfig、ServletContext的参数、Servlet的参数、ServletContext的attribute)
 	 */
 	@Override
 	protected void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 		//添加ServletContextAwareProcessor到容器，用来向实现了ServletContextAware和ServletConfigAware接口的bean注入servletContext和servletConfig
 		beanFactory.addBeanPostProcessor(new ServletContextAwareProcessor(this.servletContext, this.servletConfig));
+		//忽略依赖接口ServletContextAware和ServletConfigAware，TODO 为什么，ignoreDependencyInterface是干啥用的？
 		beanFactory.ignoreDependencyInterface(ServletContextAware.class);
 		beanFactory.ignoreDependencyInterface(ServletConfigAware.class);
-
+        //向beanFactory注册web应用环境下spring支持的scope
 		WebApplicationContextUtils.registerWebApplicationScopes(beanFactory, this.servletContext);
+		//向beanFactory注册Web环境的一些bean(ServletContext、ServletConfig、ServletContext的参数、Servlet的参数、ServletContext的attribute)
 		WebApplicationContextUtils.registerEnvironmentBeans(beanFactory, this.servletContext, this.servletConfig);
 	}
 
@@ -195,6 +200,7 @@ public abstract class AbstractRefreshableWebApplicationContext extends AbstractR
 	/**
 	 * {@inheritDoc}
 	 * <p>Replace {@code Servlet}-related property sources.
+	 * 将StubPropertySource占位符对象替换为实际Servlet和ServletContext配置参数相对应的ServletContextPropertySource、ServletConfigPropertySource对象
 	 */
 	@Override
 	protected void initPropertySources() {

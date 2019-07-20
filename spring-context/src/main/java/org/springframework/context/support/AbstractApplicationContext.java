@@ -511,7 +511,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	public void refresh() throws BeansException, IllegalStateException {
 		//加锁，确保同一时刻只有一个线程对容器进行启动或者关闭
 		synchronized (this.startupShutdownMonitor) {
-			// 刷新容器前的准备操作
+			// 刷新容器前的准备操作(设置标识，初始化PropertySources)
 			prepareRefresh();
 
 			//  获取刷新后的BeanFactory(容器)，obtainFreshBeanFactory方法完成了如下操作：
@@ -523,14 +523,15 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
-            //预先处理一下刚创建的beanFactory
+            //预处理(初始化)刚创建的beanFactory(设置一些BeanPostProcessor，添加一些系统bean到beanFactory等等)
 			prepareBeanFactory(beanFactory);
 
 			try {
-				// 允许子类实现该方法对BeanFactory进行后处理
+				// 在beanFactory预处理完后，进行后置处理逻辑
 				postProcessBeanFactory(beanFactory);
 
 				// Invoke factory processors registered as beans in the context.
+				//执行beanFactory的后置处理器BeanDefinitionRegistryPostProcessor和BeanFactoryPostProcessor
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
@@ -710,6 +711,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * <p>Must be called before singleton instantiation.
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
+		//执行beanFactory的后置处理器，getBeanFactoryPostProcessors方法获取内置的(不是通过配置加载的)BeanFactoryPocessor，一般为空？
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 	}
 

@@ -413,6 +413,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		return getBeanNamesForType(type, true, true);
 	}
 
+	/**
+	 * 如果设置了“allowEagerInit”标志，则考虑FactoryBeans创建的对象，这意味着将初始化FactoryBeans。
+	 * 如果FactoryBean创建的对象不匹配，则原始FactoryBean本身将与该类型匹配。
+	 * 如果未设置“allowEagerInit”，则仅检查原始FactoryBeans（不需要初始化每个FactoryBean）。
+	 *
+	 * @param allowEagerInit 是否初始化lazy-init单例和由FactoryBeans创建的对象（或通过带有“factory-bean”引用的工厂方法）进行类型检查。
+	 * 请注意，需要急切地初始化FactoryBeans以确定它们的类型：因此请注意，为此标志传入“true”将初始化FactoryBeans和“factory-bean”引用。
+	 */
 	@Override
 	public String[] getBeanNamesForType(Class<?> type, boolean includeNonSingletons, boolean allowEagerInit) {
 		if (!isConfigurationFrozen() || type == null || !allowEagerInit) {

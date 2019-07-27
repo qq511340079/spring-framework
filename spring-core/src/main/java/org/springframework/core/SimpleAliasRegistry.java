@@ -196,6 +196,7 @@ public class SimpleAliasRegistry implements AliasRegistry {
 		String canonicalName = name;
 		// Handle aliasing...
 		String resolvedName;
+		// 寻找别名对应的beanName，允许aliasA --> aliasB --> .... -> raw beanName这样的引用方式，所以需要使用while循环来找到最终的原始beanName
 		do {
 			resolvedName = this.aliasMap.get(canonicalName);
 			if (resolvedName != null) {

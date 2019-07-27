@@ -172,6 +172,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 
 	@Override
 	public Object getSingleton(String beanName) {
+		// 获取beanName对应的单例bean，包括了对循环引用的处理
 		return getSingleton(beanName, true);
 	}
 
@@ -186,7 +187,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
 		// 从单例对象的缓存中获取bean
 		Object singletonObject = this.singletonObjects.get(beanName);
-		// 如果没有获取到bean &&  isSingletonCurrentlyInCreation返回true(表示beanName对应的bean正在创建)
+		// 如果没有获取到bean &&  isSingletonCurrentlyInCreation返回true(表示beanName对应的bean正在创建)，用于处理循环引用
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
 			synchronized (this.singletonObjects) {
 			    // 尝试从“保存了提前创建的单例对象的缓存”中获取bean
@@ -221,8 +222,11 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	public Object getSingleton(String beanName, ObjectFactory<?> singletonFactory) {
 		Assert.notNull(beanName, "'beanName' must not be null");
 		synchronized (this.singletonObjects) {
+		    // 先尝试从单例缓存中获取bean
 			Object singletonObject = this.singletonObjects.get(beanName);
+			// 如果没有从单例缓存中获取到
 			if (singletonObject == null) {
+			    // 不允许在摧毁单例beans的时候创建bean
 				if (this.singletonsCurrentlyInDestruction) {
 					throw new BeanCreationNotAllowedException(beanName,
 							"Singleton bean creation not allowed while singletons of this factory are in destruction " +

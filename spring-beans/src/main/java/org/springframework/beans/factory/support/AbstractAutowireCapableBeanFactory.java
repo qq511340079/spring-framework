@@ -462,6 +462,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Make sure bean class is actually resolved at this point, and
 		// clone the bean definition in case of a dynamically resolved Class
 		// which cannot be stored in the shared merged bean definition.
+		// 获取要创建的bean的Class
 		Class<?> resolvedClass = resolveBeanClass(mbd, beanName);
 		if (resolvedClass != null && !mbd.hasBeanClass() && mbd.getBeanClassName() != null) {
 			mbdToUse = new RootBeanDefinition(mbd);
@@ -470,6 +471,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Prepare method overrides.
 		try {
+		    // 对配置的lookup-method进行预处理，主要是判断方法有没有重载
 			mbdToUse.prepareMethodOverrides();
 		}
 		catch (BeanDefinitionValidationException ex) {
@@ -479,7 +481,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		try {
 			// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
+            // 给InstantiationAwareBeanPostProcessor一个机会，返回一个代理对象代替目标的bean实例
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
+			// 如果InstantiationAwareBeanPostProcessor的postProcessBeforeInstantiation回调方法返回了对象，则直接返回这个对象
 			if (bean != null) {
 				return bean;
 			}
@@ -973,12 +977,15 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 				Class<?> targetType = determineTargetType(beanName, mbd);
 				if (targetType != null) {
+				    // 执行所有InstantiationAwareBeanPostProcessor的postProcessBeforeInstantiation回调方法
 					bean = applyBeanPostProcessorsBeforeInstantiation(targetType, beanName);
+					// 如果postProcessBeforeInstantiation回调方法返回了bean实例，则调用BeanPostProcessor的postProcessAfterInitialization
 					if (bean != null) {
 						bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
 					}
 				}
 			}
+			// 设置是否有InstantiationAwareBeanPostProcessor在创建bean之前返回了代理bean，如果为false的话则说明下次创建beanName的时候不需要再执行InstantiationAwareBeanPostProcessor了
 			mbd.beforeInstantiationResolved = (bean != null);
 		}
 		return bean;

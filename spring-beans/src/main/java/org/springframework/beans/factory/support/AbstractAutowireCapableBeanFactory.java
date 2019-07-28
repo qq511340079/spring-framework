@@ -451,6 +451,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * Central method of this class: creates a bean instance,
 	 * populates the bean instance, applies post-processors, etc.
 	 * @see #doCreateBean
+     *
+     * 1.获取bean的class
+     * 2.判断lookup-method方法有没有重载
+     * 3.调用InstantiationAwareBeanPostProcessor的postProcessBeforeInstantiation回调方法，可以使用返回的对象代替原始的对象
+     * 4.如果InstantiationAwareBeanPostProcessor没有返回对象，则调用doCreateBean创建对象
 	 */
 	@Override
 	protected Object createBean(String beanName, RootBeanDefinition mbd, Object[] args) throws BeanCreationException {

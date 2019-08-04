@@ -358,12 +358,14 @@ public abstract class ClassUtils {
 	 * @return the user-defined class
 	 */
 	public static Class<?> getUserClass(Class<?> clazz) {
+		// 如果clazz是CGLIB动态代理生成的Class，则返回clazz的父类
 		if (clazz != null && clazz.getName().contains(CGLIB_CLASS_SEPARATOR)) {
 			Class<?> superclass = clazz.getSuperclass();
 			if (superclass != null && Object.class != superclass) {
 				return superclass;
 			}
 		}
+		// 不是CGLIB动态代理生成的Clazz，直接返回clazz
 		return clazz;
 	}
 

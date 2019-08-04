@@ -38,6 +38,10 @@ import org.springframework.util.NumberUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * 属性值转换器委托类，负责将字段的value转换成字段实际类型
+ * 1.优先在propertyEditorRegistry寻找符合目标类型的PropertyEditor进行转换
+ * 2.如果步骤1没有找到，那么尝试使用ConversionService转换value的类型
+ * 3.如果步骤2也没有找到，则尝试使用propertyEditorRegistry中默认的PropertyEditor进行转换
  * Internal helper class for converting property values to target types.
  *
  * <p>Works on a given {@link PropertyEditorRegistrySupport} instance.

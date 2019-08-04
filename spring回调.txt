@@ -1,1 +1,12 @@
 ApplicationContextInitializer：在refresh前调用initialize方法
+
+
+
+
+
+
+
+bean相关：
+BeanPostProcessor：提供了在bean的init-method方法调用前和调用后的回调方法
+InstantiationAwareBeanPostProcessor：提供了bean实例化前和实例化后的回调方法，以及postProcessPropertyValues回调方法
+SmartInstantiationAwareBeanPostProcessor：提供了predictBeanType方法，determineCandidateConstructors回调方法用于返回实例化bean的候选构造方法，getEarlyBeanReference方法
